@@ -3,7 +3,7 @@
 First of all, thanks for taking the time to contribute to this project! On this page you will find everything you need to get started working on this project.
 
 ## Submitting changes
-Please add an clear description to every pull request containing what you have done and it's impact. As for commits, make sure they are atomic (one feature per commit) and write clear commit descriptions. One-line commit descriptions are fine for small changes, but bigger changes should look as following:
+Please add a clear description to every pull request containing what you have done and it's impact. As for commits, make sure they are atomic (one feature per commit) and write clear commit descriptions. One-line commit descriptions are fine for small changes, but bigger changes should look as following:
 
 ```
   $ git commit -m "A brief summary of the commit
@@ -30,7 +30,7 @@ When you start reading our code you will get the hang of it. Our main goal here 
 
  * We indent using one tab
  * We ALWAYS put spaces after list items and method parameters ([1, 2, 3], not [1,2,3]), around operators (x += 1, not x+=1), and around hash arrows.
- * We open the brachets of a function or class on the **same line** like so:
+ * We open the brackets of a function or class on the **same line** like so:
   ```
   function myFunction() {
   ```
