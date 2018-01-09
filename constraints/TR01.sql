@@ -33,7 +33,7 @@ CREATE TABLE Supply (
 );
 
 INSERT INTO Article VALUES (1, 4.3), (2, 3.4), (3, 5);
-INSERT INTO StorageCube VALUES ('add', 1, 9.0), ('add', 2, 8.0), ('add', 3, 1.0);
+INSERT INTO StorageCube VALUES ('add', 1, 21.0), ('add', 2, 8.0), ('add', 3, 1.0);
 INSERT INTO Supply VALUES (1, 1, 'add', 1, 3), (2, 2, 'add', 2, 1), (3, 3, 'add', 3, 100);
 
 --
@@ -63,7 +63,17 @@ BEGIN
                         ON sc.Location_address = i.StorageCube_Location_address
                             AND sc.referenceNo = i.StorageCube_referenceNo
                     WHERE
-                        (i.amount * a.weight) > sc.maxWeight)
+                        (i.amount * a.weight) + (
+                            SELECT
+                                s.amount * art.weight
+                            FROM
+                                Article art INNER JOIN Supply s
+                                ON s.Article_articleNo = art.articleNo
+                            WHERE
+                                art.articleNo = a.articleNo
+                            AND
+                                s.supplyNo = i.supplyNo
+                        ) > sc.maxWeight)
         BEGIN
             ;THROW 50000, 'The total weight of the supply cannot exceed the total maximum weight allowed in the storagecube', 1
         END
@@ -81,7 +91,8 @@ GO
 BEGIN TRAN
     BEGIN TRY
         -- Insert two articles with a total weight of 8.6
-        -- into storageCube with maxWeight of 9.0
+        -- into storageCube with maxWeight of 21.0
+        -- with an inserted weight of 12.0
         INSERT INTO Supply (supplyNo, Article_articleNo, StorageCube_Location_address, StorageCube_referenceNo, amount)
             VALUES (5, 1, 'add', 1, 2)
         PRINT 'Test BR01 - TR01 - 01 Succeeded'
@@ -93,6 +104,7 @@ BEGIN TRAN
     BEGIN TRY
         -- Insert four articles with a total weight of 13.1
         -- into storageCube with maxWeight of 8.0
+        -- with a inserted weight of 0.0
         INSERT INTO Supply (supplyNo, Article_articleNo, StorageCube_Location_address, StorageCube_referenceNo, amount)
             VALUES (6, 1, 'add', 2, 4)
         PRINT 'Test BR01 - TR01 - 02 Failed'
