@@ -7,9 +7,7 @@
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (isset($_POST['submit'])) {
-            
-            $preferences = Array($_POST['sales'], $_POST['purchase'], $_POST['stock']);
-            $database->generateDDL($preferences);
+            echo $database->generateDDL($_POST);
         }
     }
 ?>

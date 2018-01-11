@@ -105,14 +105,17 @@ END
 GO
 
 CREATE PROC InsertSQLAndPreferences
+	@TEST0 INT,
+	@TEST1 INT,
+	@TEST2 INT
 AS BEGIN
 	SET NOCOUNT ON
 
 	BEGIN TRY
 		-- Insert SQL code and the preferences
-		INSERT INTO module (moduleName, toBeGenerated, SQLCode, superModule) VALUES					('test', 1, 'CREATE TABLE ONE (id INT NOT NULL PRIMARY KEY);', NULL),
-																									('test2', 1, 'CREATE TABLE TWO (id INT NOT NULL PRIMARY KEY);', NULL),
-																									('test3', 0, 'CREATE TABLE THREE (id INT NOT NULL PRIMARY KEY);', NULL),
+		INSERT INTO module (moduleName, toBeGenerated, SQLCode, superModule) VALUES					('test', @TEST0, 'CREATE TABLE ONE (id INT NOT NULL PRIMARY KEY);', NULL),
+																									('test2', @TEST1, 'CREATE TABLE TWO (id INT NOT NULL PRIMARY KEY);', NULL),
+																									('test3', @TEST2, 'CREATE TABLE THREE (id INT NOT NULL PRIMARY KEY);', NULL),
 																									('test4', 1, 'ALTER TABLE ONE ADD test1 INT NOT NULL', 1),
 																									('test5', 1, 'ALTER TABLE ONE ADD test2 INT NOT NULL', 1),
 																									('test6', 1, 'ALTER TABLE THREE ADD test1 INT NOT NULL', 3)
@@ -137,4 +140,4 @@ AS BEGIN
 END
 GO
 
-EXEC InsertSQLAndPreferences
+EXEC InsertSQLAndPreferences 1, 0, 1
