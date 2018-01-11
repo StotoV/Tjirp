@@ -42,12 +42,12 @@ CREATE TABLE Article_in_Unit(
 )
 
 CREATE TABLE SalesOrderLine(
-	PurchaseOrder_orderNo			INT,
-	PurchaseOrder_referenceNo		VARCHAR(30),
+	SalesOrder_orderNo			INT,
+	SalesOrder_referenceNo		VARCHAR(30),
 	lineNum							INT,
 	Article_articleNo				INT,
 	Unit_name						VARCHAR(100),
-	CONSTRAINT PK_SalesOrderLine PRIMARY KEY (PurchaseOrder_orderNo, PurchaseOrder_referenceNo, lineNum),
+	CONSTRAINT PK_SalesOrderLine PRIMARY KEY (SalesOrder_orderNo, SalesOrder_referenceNo, lineNum),
 	CONSTRAINT FK_SalesOrderLine_Article FOREIGN KEY (Article_articleNo) REFERENCES Article(articleNo),
 	CONSTRAINT FK_SalesOrderLine_Unit FOREIGN KEY (Unit_name) REFERENCES Unit(name)
 );
@@ -69,7 +69,7 @@ INSERT INTO Article_in_Unit
 		(5, 'unit1')
 GO
 
-CREATE TRIGGER TR10_PURCHASE_UNIT_NAME_IN_UNIT_IN_ARTICLE
+CREATE TRIGGER TR10_SALES_UNIT_NAME_IN_UNIT_IN_ARTICLE
 	ON SalesOrderLine
 AFTER INSERT, UPDATE
 AS
