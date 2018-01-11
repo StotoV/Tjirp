@@ -41,25 +41,6 @@ CREATE TABLE constraintsInTables (
 );
 GO
 
-INSERT INTO modules (moduleName, toBeGenerated, SQLCode, superModule) VALUES	('test', 1, 'CREATE TABLE ONE (id INT NOT NULL PRIMARY KEY);', NULL),
-																				('test2', 1, 'CREATE TABLE TWO (id INT NOT NULL PRIMARY KEY);', NULL),
-																				('test3', 0, 'CREATE TABLE THREE (id INT NOT NULL PRIMARY KEY);', NULL),
-																				('test4', 1, 'ALTER TABLE ONE ADD test1 INT NOT NULL', 1),
-																				('test5', 1, 'ALTER TABLE ONE ADD test2 INT NOT NULL', 1),
-																				('test6', 1, 'ALTER TABLE THREE ADD test1 INT NOT NULL', 3)
-
-INSERT INTO relations (relationName, tableOne, tableTwo, SQLCode) VALUES		('oneTwo', 'ONE', 'TWO', 'ALTER TABLE ONE ADD FOREIGN KEY (id) REFERENCES TWO(id)'),
-																				('oneThree', 'ONE', 'THREE', 'ALTER TABLE ONE ADD FOREIGN KEY (id) REFERENCES THREE(id)')
-
-INSERT INTO constraints (tableOfConstraint, SQLCode) VALUES						('ONE', 'ALTER TABLE ONE ADD CONSTRAINT CK_TEST1 CHECK(id != 0)'),
-																				('TWO', 'ALTER TABLE TWO ADD CONSTRAINT CK_TEST2 CHECK(id != 0)')
-
-INSERT INTO constraintsInTables (constraintId, tableOfConstraint) VALUES		(1, 'ONE'),
-																				(1, 'TWO'),
-																				(1, 'THREE'),
-																				(2, 'TWO')
-GO
-
 CREATE PROC GenerateDDL
 AS BEGIN
 	SET NOCOUNT ON
@@ -124,4 +105,37 @@ AS BEGIN
 END
 GO
 
-EXEC GenerateDDL
+CREATE PROC InsertSQLAndPreferences
+AS BEGIN
+	SET NOCOUNT ON
+
+	BEGIN TRY
+		-- Insert SQL code and the preferences
+		INSERT INTO modules (moduleName, toBeGenerated, SQLCode, superModule) VALUES	('test', 1, 'CREATE TABLE ONE (id INT NOT NULL PRIMARY KEY);', NULL),
+																						('test2', 1, 'CREATE TABLE TWO (id INT NOT NULL PRIMARY KEY);', NULL),
+																						('test3', 0, 'CREATE TABLE THREE (id INT NOT NULL PRIMARY KEY);', NULL),
+																						('test4', 1, 'ALTER TABLE ONE ADD test1 INT NOT NULL', 1),
+																						('test5', 1, 'ALTER TABLE ONE ADD test2 INT NOT NULL', 1),
+																						('test6', 1, 'ALTER TABLE THREE ADD test1 INT NOT NULL', 3)
+
+		INSERT INTO relations (relationName, tableOne, tableTwo, SQLCode) VALUES		('oneTwo', 'ONE', 'TWO', 'ALTER TABLE ONE ADD FOREIGN KEY (id) REFERENCES TWO(id)'),
+																						('oneThree', 'ONE', 'THREE', 'ALTER TABLE ONE ADD FOREIGN KEY (id) REFERENCES THREE(id)')
+
+		INSERT INTO constraints (tableOfConstraint, SQLCode) VALUES						('ONE', 'ALTER TABLE ONE ADD CONSTRAINT CK_TEST1 CHECK(id != 0)'),
+																						('TWO', 'ALTER TABLE TWO ADD CONSTRAINT CK_TEST2 CHECK(id != 0)')
+
+		INSERT INTO constraintsInTables (constraintId, tableOfConstraint) VALUES		(1, 'ONE'),
+																						(1, 'TWO'),
+																						(1, 'THREE'),
+																						(2, 'TWO')
+
+		-- Execute the GenerateDDL proc
+		EXEC GenerateDDL
+	END TRY
+	BEGIN CATCH
+		;THROW
+	END CATCH
+END
+GO
+
+EXEC InsertSQLAndPreferences
