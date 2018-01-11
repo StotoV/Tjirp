@@ -30,7 +30,6 @@ CREATE TABLE relations (
 
 CREATE TABLE constraints (
 	id						INT				NOT NULL	PRIMARY KEY		IDENTITY(1,1),
-	tableOfConstraint		VARCHAR(128)	NOT NULL,
 	SQLCode					VARCHAR(MAX)	NOT NULL
 );
 
@@ -90,8 +89,7 @@ AS BEGIN
 		-- Select all the constraints of which the needed tables exists
 		DECLARE @CONSTRAINTSQL VARCHAR(MAX) = ''
 		SELECT @CONSTRAINTSQL = (@CONSTRAINTSQL + SQLCode + CHAR(13)+CHAR(10)) FROM constraints C
-			WHERE EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = tableOfConstraint)
-			AND NOT EXISTS (SELECT *
+			WHERE NOT EXISTS (SELECT *
 								FROM constraintsInTables CT
 								WHERE CT.constraintId = C.id
 								AND CT.tableOfConstraint NOT IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES))
@@ -121,8 +119,8 @@ AS BEGIN
 		INSERT INTO relations (relationName, tableOne, tableTwo, SQLCode) VALUES		('oneTwo', 'ONE', 'TWO', 'ALTER TABLE ONE ADD FOREIGN KEY (id) REFERENCES TWO(id)'),
 																						('oneThree', 'ONE', 'THREE', 'ALTER TABLE ONE ADD FOREIGN KEY (id) REFERENCES THREE(id)')
 
-		INSERT INTO constraints (tableOfConstraint, SQLCode) VALUES						('ONE', 'ALTER TABLE ONE ADD CONSTRAINT CK_TEST1 CHECK(id != 0)'),
-																						('TWO', 'ALTER TABLE TWO ADD CONSTRAINT CK_TEST2 CHECK(id != 0)')
+		INSERT INTO constraints (SQLCode) VALUES										('ALTER TABLE ONE ADD CONSTRAINT CK_TEST1 CHECK(id != 0)'),
+																						('ALTER TABLE TWO ADD CONSTRAINT CK_TEST2 CHECK(id != 0)')
 
 		INSERT INTO constraintsInTables (constraintId, tableOfConstraint) VALUES		(1, 'ONE'),
 																						(1, 'TWO'),
