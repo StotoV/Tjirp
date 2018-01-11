@@ -1,18 +1,18 @@
---BR07 - TR10
+--BR07 - TR11
 
-IF DB_ID('BR07_TR10') IS NULL
-     CREATE DATABASE BR07_TR10
+IF DB_ID('BR07_TR11') IS NULL
+     CREATE DATABASE BR07_TR11
 GO
 
-USE BR07_TR10
+USE BR07_TR11
 GO
 
 IF (EXISTS (SELECT * from sys.tables WHERE name = 'Article_in_Unit'))
     DROP TABLE Article_in_Unit
 GO
 
-IF (EXISTS (SELECT * from sys.tables WHERE name = 'SalesOrderLine'))
-    DROP TABLE SalesOrderLine
+IF (EXISTS (SELECT * from sys.tables WHERE name = 'PurchaseOrderLine'))
+    DROP TABLE PurchaseOrderLine
 GO
 
 IF (EXISTS (SELECT * from sys.tables WHERE name = 'Article'))
@@ -41,15 +41,15 @@ CREATE TABLE Article_in_Unit(
 	CONSTRAINT FK_Article_in_Unit_Unit FOREIGN KEY (Unit_name) REFERENCES Unit(name)
 )
 
-CREATE TABLE SalesOrderLine(
-	SalesOrder_orderNo			INT,
-	SalesOrder_referenceNo		VARCHAR(30),
+CREATE TABLE PurchaseOrderLine(
+	PurchaseOrder_orderNo			INT,
+	PurchaseOrder_referenceNo		VARCHAR(30),
 	lineNum							INT,
 	Article_articleNo				INT,
 	Unit_name						VARCHAR(100),
-	CONSTRAINT PK_SalesOrderLine PRIMARY KEY (SalesOrder_orderNo, SalesOrder_referenceNo, lineNum),
-	CONSTRAINT FK_SalesOrderLine_Article FOREIGN KEY (Article_articleNo) REFERENCES Article(articleNo),
-	CONSTRAINT FK_SalesOrderLine_Unit FOREIGN KEY (Unit_name) REFERENCES Unit(name)
+	CONSTRAINT PK_PurchaseOrderLine PRIMARY KEY (PurchaseOrder_orderNo, PurchaseOrder_referenceNo, lineNum),
+	CONSTRAINT FK_PurchaseOrderLine_Article FOREIGN KEY (Article_articleNo) REFERENCES Article(articleNo),
+	CONSTRAINT FK_PurchaseOrderLine_Unit FOREIGN KEY (Unit_name) REFERENCES Unit(name)
 );
 
 INSERT INTO Article(articleNo) 
@@ -69,8 +69,8 @@ INSERT INTO Article_in_Unit
 		(5, 'unit1')
 GO
 
-CREATE TRIGGER TR10_SALES_UNIT_NAME_IN_UNIT_IN_ARTICLE
-	ON SalesOrderLine
+CREATE TRIGGER TR10_PURCHASE_UNIT_NAME_IN_UNIT_IN_ARTICLE
+	ON PurchaseOrderLine
 AFTER INSERT, UPDATE
 AS
 BEGIN
@@ -100,7 +100,7 @@ BEGIN TRAN
     BEGIN TRY
 		-- Success scenario
         -- Insert order line with article 1 and 2 that belong to unit1
-		INSERT INTO SalesOrderLine
+		INSERT INTO PurchaseOrderLine
 			VALUES(1, '1A', 6, 1, 'unit1'),
 				(1, '1A', 7, 2, 'unit1')
         PRINT 'Test BR07 - TR10 - 01 Succeeded'
@@ -113,7 +113,7 @@ BEGIN TRAN
 		-- Fail scenario
         -- Insert order line with article 3 and 4 that belong to unit2
 		-- None of the records should get inserted
-		INSERT INTO SalesOrderLine
+		INSERT INTO PurchaseOrderLine
 		-- Insert order line with article 3 that belongs to unit1 (which should not violate the constraint by itself)
 			VALUES(1, '1A', 8, 3, 'unit1'),
 				-- Insert order line with article 4 and 5 that belong to unit2
@@ -129,9 +129,9 @@ ROLLBACK TRAN
 SELECT * FROM Article
 SELECT * FROM Unit
 SELECT * FROM Article_in_Unit
-SELECT * FROM SalesOrderLine
+SELECT * FROM PurchaseOrderLine
 
---DELETE FROM SalesOrderLine
+--DELETE FROM PurchaseOrderLine
 --DELETE FROM Article_in_Unit
 --DELETE FROM Article
 --DELETE FROM Unit
