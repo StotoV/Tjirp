@@ -1,42 +1,245 @@
 /*==============================================================*/
 /* DBMS name:      Microsoft SQL Server 2014                    */
-/* Created on:     1/11/2018 10:15:01 AM                        */
+/* Created on:     1/11/2018 12:55:59 PM                        */
 /*==============================================================*/
 
-create type ADDRESS from VARCHAR(250);go
-create type AMOUNT from int;go
-create type ARTICLE from int;go
-create type COLOR from varchar(8);go
-create type COMPONENT from int;go
-create type CUSTOMER from int;go
-create type DESCRIPTION from varchar(255);go
-create type DIMENSION from varchar(10);go
-create type EMAIL from varchar(254);go
-create type EMPLOYEE from int;go
-create type "FUNCTION" from varchar(100);go
-create type INVOICE from int;go
-create type LOCATION from int;go
-create type MEASUREMENTTYPE from text;go
-create type NAME from varchar(100);go
-create type "ORDER" from int;go
-create type ORDERTYPE from text;go
-create type PAYMENT from int;go
-create type PHONENO from varchar(20);go
-create type PRICE from money;go
-create type PRODUCT from int;go
-create type QUOTATION from int;go
-create type REFERENCE from varchar(30);go
-create type RELATION from int;go
-create type SEASON from text;go
-create type SHELFLIFE from datetime;go
-create type SIZE from decimal;go
-create type STORAGEMETHOD from text;go
-create type SUPPLIER from int;go
-create type TEMPERATURE from decimal;go
-create type UNIT from VARCHAR(250);go
-create type VALUTA from text;go
-create type VATTYPE from varchar(20);go
-create type WEIGHT from decimal;go
+/*==============================================================*/
+/* Domain: ADDRESS                                              */
+/*==============================================================*/
+create type ADDRESS
+   from text
+go
+
+/*==============================================================*/
+/* Domain: AMOUNT                                               */
+/*==============================================================*/
+create type AMOUNT
+   from int
+go
+
+/*==============================================================*/
+/* Domain: ARTICLE                                              */
+/*==============================================================*/
+create type ARTICLE
+   from int
+go
+
+/*==============================================================*/
+/* Domain: COLOR                                                */
+/*==============================================================*/
+create type COLOR
+   from varchar(8)
+go
+
+/*==============================================================*/
+/* Domain: COMPONENT                                            */
+/*==============================================================*/
+create type COMPONENT
+   from int
+go
+
+/*==============================================================*/
+/* Domain: CUSTOMER                                             */
+/*==============================================================*/
+create type CUSTOMER
+   from int
+go
+
+/*==============================================================*/
+/* Domain: DESCRIPTION                                          */
+/*==============================================================*/
+create type DESCRIPTION
+   from varchar(255)
+go
+
+/*==============================================================*/
+/* Domain: DIMENSION                                            */
+/*==============================================================*/
+create type DIMENSION
+   from varchar(10)
+go
+
+/*==============================================================*/
+/* Domain: EMAIL                                                */
+/*==============================================================*/
+create type EMAIL
+   from varchar(254)
+go
+
+/*==============================================================*/
+/* Domain: EMPLOYEE                                             */
+/*==============================================================*/
+create type EMPLOYEE
+   from int
+go
+
+/*==============================================================*/
+/* Domain: "FUNCTION"                                           */
+/*==============================================================*/
+create type "FUNCTION"
+   from varchar(100)
+go
+
+/*==============================================================*/
+/* Domain: INVOICE                                              */
+/*==============================================================*/
+create type INVOICE
+   from int
+go
+
+/*==============================================================*/
+/* Domain: LOCATION                                             */
+/*==============================================================*/
+create type LOCATION
+   from int
+go
+
+/*==============================================================*/
+/* Domain: MEASUREMENTTYPE                                      */
+/*==============================================================*/
+create type MEASUREMENTTYPE
+   from text
+go
+
+/*==============================================================*/
+/* Domain: NAME                                                 */
+/*==============================================================*/
+create type NAME
+   from varchar(100)
+go
+
+/*==============================================================*/
+/* Domain: "ORDER"                                              */
+/*==============================================================*/
+create type "ORDER"
+   from int
+go
+
+/*==============================================================*/
+/* Domain: ORDERTYPE                                            */
+/*==============================================================*/
+create type ORDERTYPE
+   from text
+go
+
+/*==============================================================*/
+/* Domain: PAYMENT                                              */
+/*==============================================================*/
+create type PAYMENT
+   from int
+go
+
+/*==============================================================*/
+/* Domain: PHONENO                                              */
+/*==============================================================*/
+create type PHONENO
+   from varchar(20)
+go
+
+/*==============================================================*/
+/* Domain: PRICE                                                */
+/*==============================================================*/
+create type PRICE
+   from money
+go
+
+/*==============================================================*/
+/* Domain: PRODUCT                                              */
+/*==============================================================*/
+create type PRODUCT
+   from int
+go
+
+/*==============================================================*/
+/* Domain: QUOTATION                                            */
+/*==============================================================*/
+create type QUOTATION
+   from int
+go
+
+/*==============================================================*/
+/* Domain: REFERENCE                                            */
+/*==============================================================*/
+create type REFERENCE
+   from varchar(30)
+go
+
+/*==============================================================*/
+/* Domain: RELATION                                             */
+/*==============================================================*/
+create type RELATION
+   from int
+go
+
+/*==============================================================*/
+/* Domain: SEASON                                               */
+/*==============================================================*/
+create type SEASON
+   from text
+go
+
+/*==============================================================*/
+/* Domain: SHELFLIFE                                            */
+/*==============================================================*/
+create type SHELFLIFE
+   from datetime
+go
+
+/*==============================================================*/
+/* Domain: SIZE                                                 */
+/*==============================================================*/
+create type SIZE
+   from decimal
+go
+
+/*==============================================================*/
+/* Domain: STORAGEMETHOD                                        */
+/*==============================================================*/
+create type STORAGEMETHOD
+   from text
+go
+
+/*==============================================================*/
+/* Domain: SUPPLIER                                             */
+/*==============================================================*/
+create type SUPPLIER
+   from int
+go
+
+/*==============================================================*/
+/* Domain: TEMPERATURE                                          */
+/*==============================================================*/
+create type TEMPERATURE
+   from decimal
+go
+
+/*==============================================================*/
+/* Domain: UNIT                                                 */
+/*==============================================================*/
+create type UNIT
+   from text
+go
+
+/*==============================================================*/
+/* Domain: VALUTA                                               */
+/*==============================================================*/
+create type VALUTA
+   from text
+go
+
+/*==============================================================*/
+/* Domain: VATTYPE                                              */
+/*==============================================================*/
+create type VATTYPE
+   from varchar(20)
+go
+
+/*==============================================================*/
+/* Domain: WEIGHT                                               */
+/*==============================================================*/
+create type WEIGHT
+   from decimal
+go
 
 /*==============================================================*/
 /* Table: ARTICLE                                               */
@@ -228,6 +431,8 @@ create table PURCHASEORDER (
    PURCHASEQUOTE_QUOTATIONNO QUOTATION            null,
    PURCHASEQUOTE_REFERENCENO int                  null,
    SUPPLIER_RELATIONNO  RELATION             not null,
+   SUPERORDERNO         "ORDER"              null,
+   SUPERORDERREFERENCENO int                  null,
    DATE                 datetime             not null,
    ISCANCELLED          bit                  not null,
    constraint PK_PURCHASEORDER primary key (ORDERNO, REFERENCENO)
@@ -284,9 +489,6 @@ create table PURCHASEQUOTE (
    ISCANCELLED          bit                  not null,
    constraint PK_PURCHASEQUOTE primary key (QUOTATIONNO, REFERENCENO)
 )
-go
-
-create nonclustered index PURCHASEQUOTE_PROCESSING_FK on PURCHASEQUOTE (EMPLOYEE_EMPLOYEEID ASC)
 go
 
 /*==============================================================*/
@@ -349,6 +551,10 @@ create table SALESORDER (
    SALESINVOICE_INVOICENO INVOICE              null,
    SALESINVOICE_REFERENCENO REFERENCE            null,
    CUSTOMER_RELATIONNO  RELATION             not null,
+   SUPERORDERNO         "ORDER"              null,
+   SUPERORDERREFERENCENO REFERENCE            null,
+   BACKORDERNO          "ORDER"              null,
+   BACKORDERREFERENCENO REFERENCE            null,
    DATE                 datetime             not null,
    ISCANCELLED          bit                  not null,
    constraint PK_SALESORDER primary key (ORDERNO, REFERENCENO)
@@ -605,13 +811,13 @@ go
 alter table COMPONENT
    add constraint FK_COMPONEN_COMPONENT_ARTICLE_2 foreign key (ARTICLE_ARTICLENO)
       references ARTICLE (ARTICLENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table COMPONENT
    add constraint FK_COMPONEN_COMPONENT_ARTICLE foreign key (ARTICLE_ARTICLENO)
       references ARTICLE (ARTICLENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table CUSTOMERDISCOUNT
@@ -663,7 +869,7 @@ alter table PURCHASEINVOICELINE
 go
 
 alter table PURCHASEINVOICELINE
-   add constraint FK_PURCHASE_PURCHASEO_PURCHASE_6 foreign key (PURCHASEORDERLINE_PURCHASEORDER_ORDERNO, PURCHASEORDERLINE_PURCHASEORDER_REFERENCENO, PURCHASEORDERLINE_LINENO)
+   add constraint FK_PURCHASE_PURCHASEO_PURCHASE_7 foreign key (PURCHASEORDERLINE_PURCHASEORDER_ORDERNO, PURCHASEORDERLINE_PURCHASEORDER_REFERENCENO, PURCHASEORDERLINE_LINENO)
       references PURCHASEORDERLINE (PURCHASEORDER_ORDERNO, PURCHASEORDER_REFERENCENO, "LINENO")
          on update cascade on delete cascade
 go
@@ -677,7 +883,7 @@ go
 alter table PURCHASEINVOICELINE
    add constraint FK_PURCHASE_VATTYPE_F_VATTYPE_3 foreign key (VATTYPE_CATEGORY)
       references VATTYPE (CATEGORY)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEORDER
@@ -695,7 +901,7 @@ go
 alter table PURCHASEORDER
    add constraint FK_PURCHASE_PURCHASEO_PURCHASE_3 foreign key (PURCHASEINVOICE_INVOICENO, PURCHASEINVOICE_REFERENCENO)
       references PURCHASEINVOICE (INVOICENO, REFERENCENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEORDER
@@ -704,46 +910,51 @@ alter table PURCHASEORDER
          on update cascade on delete cascade
 go
 
+alter table PURCHASEORDER
+   add constraint FK_PURCHASE_PURCHASEO_PURCHASE_6 foreign key (SUPERORDERNO, SUPERORDERREFERENCENO)
+      references PURCHASEORDER (ORDERNO, REFERENCENO)
+go
+
 alter table PURCHASEORDERLINE
    add constraint FK_PURCHASE_ARTICLE_I_ARTICLE_2 foreign key (ARTICLE_ARTICLENO)
       references ARTICLE (ARTICLENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEORDERLINE
    add constraint FK_PURCHASE_PURCHASEO_ARTICLEI_2 foreign key (ARTICLE_ARTICLENO, ARTICLEINLOCATION_LOCATION_ADDRESS)
       references ARTICLEINLOCATION (ARTICLE_ARTICLENO, LOCATION_ADDRESS)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEORDERLINE
    add constraint FK_PURCHASE_PURCHASEO_ARTICLEI foreign key (ARTICLEINSTORAGECUBE_STORAGECUBE_LOCATION_ADDRESS, ARTICLE_ARTICLENO, ARTICLEINSTORAGECUBE_STORAGECUBE_REFERENCENO)
       references ARTICLEINSTORAGECUBE (STORAGECUBE_LOCATION_ADDRESS, ARTICLE_ARTICLENO, STORAGECUBE_REFERENCENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEORDERLINE
    add constraint FK_PURCHASE_PURCHASEO_PURCHASE_5 foreign key (PURCHASEINVOICELINE_PURCHASEINVOICE_INVOICENO, PURCHASEINVOICELINE_PURCHASEINVOICE_REFERENCENO, PURCHASEINVOICELINE_LINENO)
       references PURCHASEINVOICELINE (PURCHASEINVOICE_INVOICENO, PURCHASEINVOICE_REFERENCENO, "LINENO")
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEORDERLINE
    add constraint FK_PURCHASE_PURCHASEO_PURCHASE_2 foreign key (PURCHASEORDER_ORDERNO, PURCHASEORDER_REFERENCENO)
       references PURCHASEORDER (ORDERNO, REFERENCENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEORDERLINE
    add constraint FK_PURCHASE_UNIT_IN_P_UNIT_2 foreign key (UNIT_NAME)
       references UNIT (NAME)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEORDERLINE
    add constraint FK_PURCHASE_VATTYPE_F_VATTYPE_2 foreign key (VATTYPE_CATEGORY)
       references VATTYPE (CATEGORY)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEPAYMENT
@@ -755,19 +966,19 @@ go
 alter table PURCHASEQUOTE
    add constraint FK_PURCHASE_PURCHASEO_PURCHASE foreign key (PURCHASEORDER_ORDERNO, PURCHASEORDER_REFERENCENO)
       references PURCHASEORDER (ORDERNO, REFERENCENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEQUOTE
    add constraint FK_PURCHASE_PURCHASEQ_SUPPLIER foreign key (SUPPLIER_RELATIONNO)
       references SUPPLIER (RELATIONNO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEQUOTE
    add constraint FK_PURCHASE_PURCHASEQ_EMPLOYEE foreign key (EMPLOYEE_EMPLOYEEID)
       references EMPLOYEE (EMPLOYEEID)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table PURCHASEQUOTELINE
@@ -791,7 +1002,7 @@ go
 alter table PURCHASEQUOTELINE
    add constraint FK_PURCHASE_VATTYPE_F_VATTYPE foreign key (VATTYPE_CATEGORY)
       references VATTYPE (CATEGORY)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESINVOICE
@@ -827,7 +1038,12 @@ go
 alter table SALESINVOICELINE
    add constraint FK_SALESINV_VATTYPE_F_VATTYPE foreign key (VATTYPE_CATEGORY)
       references VATTYPE (CATEGORY)
-         on update no action on delete no action
+         on update cascade on delete cascade
+go
+
+alter table SALESORDER
+   add constraint FK_SALESORD_SALESORDE_SALESORD_2 foreign key (BACKORDERNO, BACKORDERREFERENCENO)
+      references SALESORDER (ORDERNO, REFERENCENO)
 go
 
 alter table SALESORDER
@@ -845,13 +1061,18 @@ go
 alter table SALESORDER
    add constraint FK_SALESORD_SALESORDE_SALESINV_2 foreign key (SALESINVOICE_INVOICENO, SALESINVOICE_REFERENCENO)
       references SALESINVOICE (INVOICENO, REFERENCENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESORDER
    add constraint FK_SALESORD_SALESORDE_EMPLOYEE foreign key (EMPLOYEE_EMPLOYEEID)
       references EMPLOYEE (EMPLOYEEID)
          on update cascade on delete cascade
+go
+
+alter table SALESORDER
+   add constraint FK_SALESORD_SALESORDE_SALESORD foreign key (SUPERORDERNO, SUPERORDERREFERENCENO)
+      references SALESORDER (ORDERNO, REFERENCENO)
 go
 
 alter table SALESORDERDISCOUNT
@@ -863,31 +1084,31 @@ go
 alter table SALESORDERLINE
    add constraint FK_SALESORD_ARTICLE_I_ARTICLE foreign key (ARTICLE_ARTICLENO)
       references ARTICLE (ARTICLENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESORDERLINE
    add constraint FK_SALESORD_SALESORDE_ARTICLEI_2 foreign key (ARTICLE_ARTICLENO, ARTICLEINLOCATION_LOCATION_ADDRESS)
       references ARTICLEINLOCATION (ARTICLE_ARTICLENO, LOCATION_ADDRESS)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESORDERLINE
    add constraint FK_SALESORD_SALESORDE_ARTICLEI foreign key (ARTICLEINSTORAGECUBE_STORAGECUBE_LOCATION_ADDRESS, ARTICLE_ARTICLENO, ARTICLEINSTORAGECUBE_STORAGECUBE_REFERENCENO)
       references ARTICLEINSTORAGECUBE (STORAGECUBE_LOCATION_ADDRESS, ARTICLE_ARTICLENO, STORAGECUBE_REFERENCENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESORDERLINE
    add constraint FK_SALESORD_SALESORDE_SALESINV foreign key (SALESINVOICELINE_SALESINVOICE_INVOICENO, SALESINVOICELINE_SALESINVOICE_REFERENCENO, SALESINVOICELINE_LINENO)
       references SALESINVOICELINE (SALESINVOICE_INVOICENO, SALESINVOICE_REFERENCENO, "LINENO")
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESORDERLINE
-   add constraint FK_SALESORD_SALESORDE_SALESORD foreign key (SALESORDER_ORDERNO, SALESORDER_REFERENCENO)
+   add constraint FK_SALESORD_SALESORDE_SALESORD_3 foreign key (SALESORDER_ORDERNO, SALESORDER_REFERENCENO)
       references SALESORDER (ORDERNO, REFERENCENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESORDERLINE
@@ -899,13 +1120,13 @@ go
 alter table SALESORDERLINE
    add constraint FK_SALESORD_UNIT_IN_S_UNIT foreign key (UNIT_NAME)
       references UNIT (NAME)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESORDERLINE
    add constraint FK_SALESORD_VATTYPE_F_VATTYPE foreign key (VATTYPE_CATEGORY)
       references VATTYPE (CATEGORY)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESPAYMENT
@@ -917,19 +1138,19 @@ go
 alter table SALESQUOTE
    add constraint FK_SALESQUO_SALESORDE_SALESORD foreign key (SALESORDER_ORDERNO, SALESORDER_REFERENCENO)
       references SALESORDER (ORDERNO, REFERENCENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESQUOTE
    add constraint FK_SALESQUO_SALESQUOT_CUSTOMER foreign key (CUSTOMER_RELATIONNO)
       references CUSTOMER (RELATIONNO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESQUOTE
    add constraint FK_SALESQUO_SALESQUOT_EMPLOYEE foreign key (EMPLOYEE_EMPLOYEEID)
       references EMPLOYEE (EMPLOYEEID)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESQUOTELINE
@@ -941,7 +1162,7 @@ go
 alter table SALESQUOTELINE
    add constraint FK_SALESQUO_RELATIONS_ARTICLE foreign key (ARTICLE_ARTICLENO)
       references ARTICLE (ARTICLENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SALESQUOTELINE
@@ -959,13 +1180,13 @@ go
 alter table SALESQUOTELINE
    add constraint FK_SALESQUO_VATTYPE_F_VATTYPE foreign key (VATTYPE_CATEGORY)
       references VATTYPE (CATEGORY)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table STORAGECUBE
    add constraint FK_STORAGEC_STORAGECU_LOCATION foreign key (LOCATION_ADDRESS)
       references LOCATION (ADDRESS)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table STORAGECUBE
@@ -977,13 +1198,13 @@ go
 alter table SUPPLY
    add constraint FK_SUPPLY_ARTICLE_I_ARTICLE foreign key (ARTICLE_ARTICLENO)
       references ARTICLE (ARTICLENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SUPPLY
    add constraint FK_SUPPLY_SUPPLY_IN_LOCATION foreign key (LOCATION_ADDRESS)
       references LOCATION (ADDRESS)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SUPPLY
@@ -995,13 +1216,13 @@ go
 alter table SUPPLY
    add constraint FK_SUPPLY_SUPPLY_IN_STORAGEC foreign key (STORAGECUBE_LOCATION_ADDRESS, STORAGECUBE_REFERENCENO)
       references STORAGECUBE (LOCATION_ADDRESS, REFERENCENO)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SUPPLY
    add constraint FK_SUPPLY_UNIT_IN_S_UNIT foreign key (UNIT_NAME)
       references UNIT (NAME)
-         on update no action on delete no action
+         on update cascade on delete cascade
 go
 
 alter table SUPPLYDISCOUNT
