@@ -67,11 +67,17 @@ CREATE TABLE DeclarativeConstraint (
 GO
 
 CREATE PROC GenerateDDL
+	@MODULE1 BIT,
+	@MODULE2 BIT
 AS BEGIN
 	SET NOCOUNT ON
 
 	BEGIN TRY
-		PRINT 'LOGIC HERE'
+		-- Create and fill the temporary database with the preferences
+		DECLARE @PREFERENCES TABLE (moduleName VARCHAR(255) PRIMARY KEY)
+
+		-- Generate the collumns of the selected tables
+		SELECT * FROM TableColumn WHERE moduleName IN (SELECT moduleName FROM @PREFERENCES)
 	END TRY
 	BEGIN CATCH
 		;THROW
