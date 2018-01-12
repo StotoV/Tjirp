@@ -34,7 +34,7 @@ SELECT
             -- Datatypes with length
             ELSE
                 '(' + CAST(CHARACTER_MAXIMUM_LENGTH AS VARCHAR) + ')'
-        END + ',' +
+        END + ''',' +
 
         -- NULL / NOT NULL
         CASE
