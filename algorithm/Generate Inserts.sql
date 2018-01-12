@@ -34,14 +34,14 @@ SELECT
             -- Datatypes with length
             ELSE
                 '(' + CAST(CHARACTER_MAXIMUM_LENGTH AS VARCHAR) + ')'
-        END + ''',' +
+        END + ''', ' +
 
         -- NULL / NOT NULL
         CASE
             WHEN IS_NULLABLE = 'NO'
-                THEN ' NOT NULL'
+                THEN '1'
             ELSE
-                ' NULL'
+                '0'
         END + '),'
 FROM
     INFORMATION_SCHEMA.COLUMNS
