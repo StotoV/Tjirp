@@ -19,9 +19,7 @@ CREATE TABLE TableColumn (
 	moduleName				VARCHAR(255)	NOT NULL,
 	columnType				VARCHAR(128)	NOT NULL,
 	mandatory				BIT				NOT NULL,
-	--primaryKey			BIT				NOT NULL,
-	--"unique"				BIT				NOT NULL,
-	referentialTableName	VARCHAR(128)	NULL,
+	referentialTableName	VARCHAR(128)	NULL,		--parent table
 	referentialColumnName	VARCHAR(128)	NULL,
 	CONSTRAINT PK_TableColumn PRIMARY KEY (tableName, columnName),
 	CONSTRAINT AK_TableColumn UNIQUE (tableName, columnSequenceNumber),
@@ -31,9 +29,9 @@ CREATE TABLE TableColumn (
 
 CREATE TABLE TableConstraint (
 	tableName				VARCHAR(128)	NOT NULL,
-	triggerName				VARCHAR(128)	NOT NULL,
-	triggerCode				VARCHAR(MAX)	NOT NULL,
-	CONSTRAINT PK_TableConstraint PRIMARY KEY (tableName, triggerName),
+	constraintName			VARCHAR(128)	NOT NULL,
+	constraintCode			VARCHAR(MAX)	NOT NULL,
+	CONSTRAINT PK_TableConstraint PRIMARY KEY (tableName, constraintName),
 	CONSTRAINT FK_TableConstraint_Table FOREIGN KEY (tableName) REFERENCES "Table" (name)
 );
 
@@ -41,7 +39,11 @@ CREATE TABLE TableColumnConstraint (
 	tableName				VARCHAR(128)	NOT NULL,
 	columnName				VARCHAR(128)	NOT NULL,
 	constraintName			VARCHAR(128)	NOT NULL,
-	constraintType			VARCHAR(128)	NOT NULL,	--zou CHECK kunnen zijn of PK/AK/FK (maar deze laatste drie zouden ook attributen in TableColumn kunnen zijn)
+	constraintType			VARCHAR(128)	NOT NULL,	--zou CHECK kunnen zijn of PK/AK/FK (maar deze laatste drie zouden ook attributen kunnen zijn)
+	--primaryKey			BIT				NOT NULL,
+	--uniqueKey				BIT				NOT NULL,
+	--foreignKey			BIT				NOT NULL,	--is 1 als referentialColumnName en referentialTableName beide ingevuld zijn
+	--"check"				BIT				NOT NULL,
 	constraintCode			VARCHAR(MAX)	NULL,
 	CONSTRAINT PK_TableOrColumnConstraint PRIMARY KEY (tableName, columnName, constraintName),
 	CONSTRAINT FK_TableOrColumnConstraint_TableColumn FOREIGN KEY (tableName, columnName) REFERENCES "TableColumn" (tableName, columnName)
