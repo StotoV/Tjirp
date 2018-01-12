@@ -1,6 +1,21 @@
+SET NOCOUNT ON
+GO
+
+USE master
+GO
+
+DROP DATABASE IF EXISTS Tjirp
+GO
+
+CREATE DATABASE Tjirp
+GO
+
+USE Tjirp
+GO
+
 CREATE TABLE Module (
 	name					VARCHAR(255)	NOT NULL,
-	mandatory				BIT		NOT NULL,
+	mandatory				BIT				NOT NULL,
 	superModule				VARCHAR(255)    NULL,
 	CONSTRAINT PK_Modules PRIMARY KEY (name),
 	CONSTRAINT FK_Module_Super FOREIGN KEY (superModule) REFERENCES Module (name)
@@ -29,7 +44,7 @@ CREATE TABLE TableColumn (
 
 CREATE TABLE ProceduralConstraint (
 	constraintName				VARCHAR(128)	NOT NULL,
-	tableName				VARCHAR(128)	NULL,
+	tableName					VARCHAR(128)	NULL,
 	constraintType				VARCHAR(128)    NOT NULL,
 	constraintLogic				VARCHAR(MAX)	NOT NULL,
 	constraintMetaData			VARCHAR(MAX)	NULL,
@@ -38,14 +53,28 @@ CREATE TABLE ProceduralConstraint (
 );
 
 CREATE TABLE DeclarativeConstraint (
-	ID 					INT IDENTITY	NOT NULL,
-	tableName				VARCHAR(128)	NOT NULL,
-	columnName				VARCHAR(128)	NOT NULL,
+	ID 							INT IDENTITY	NOT NULL	PRIMARY KEY,
+	tableName					VARCHAR(128)	NOT NULL,
+	columnName					VARCHAR(128)	NOT NULL,
 	constraintName				VARCHAR(128)	NOT NULL,
-	superConstraint				INT		NULL,
+	superConstraint				INT				NULL,
 	constraintType				VARCHAR(128)	NULL,	
 	constraintLogic				VARCHAR(MAX)	NULL,
 	CONSTRAINT AK_DeclarativeConstraint UNIQUE (tableName, columnName, constraintName),
 	CONSTRAINT FK_DeclarativeConstraint_TableColumn FOREIGN KEY (tableName, columnName) REFERENCES "TableColumn" (tableName, columnName),
 	CONSTRAINT FK_DeclarativeConstraint_Super FOREIGN KEY (superConstraint) REFERENCES DeclarativeConstraint (ID)
 );
+GO
+
+CREATE PROC GenerateDDL
+AS BEGIN
+	SET NOCOUNT ON
+
+	BEGIN TRY
+		PRINT 'LOGIC HERE'
+	END TRY
+	BEGIN CATCH
+		;THROW
+	END CATCH
+END
+GO

@@ -140,4 +140,4 @@ AS BEGIN
 END
 GO
 
-EXEC InsertSQLAndPreferences 1, 0, 1
+EXEC InsertSQLAndPreferences 1, 1, 1
