@@ -5,7 +5,8 @@ USE test;
 -- Tables
 --
 SELECT
-    'INSERT INTO "table" (name, moduleName) VALUES ' + '(''' + TABLE_NAME + ''', ''module'');' as SQL
+    'INSERT INTO "table" (name, moduleName) VALUES ' +
+    '(''' + TABLE_NAME + ''', ''module'');' as SQL
 
 FROM
     INFORMATION_SCHEMA.TABLES
@@ -81,7 +82,3 @@ WHERE
     tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
 ORDER BY
     tc.TABLE_NAME
-
---
--- Alternate keys
---
