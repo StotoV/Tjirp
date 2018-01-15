@@ -56,17 +56,19 @@ CREATE TABLE ProceduralConstraint (
 );
 
 CREATE TABLE DeclarativeConstraint (
-	ID 							INT IDENTITY	NOT NULL	PRIMARY KEY,
+	constraintName				VARCHAR(128)	NOT NULL	PRIMARY KEY,
 	tableName					VARCHAR(128)	NOT NULL,
-	columnName					VARCHAR(128)	NOT NULL,
-	constraintName				VARCHAR(128)	NOT NULL,
-	superConstraint				INT				NULL,
 	constraintType				VARCHAR(128)	NULL,	
 	constraintLogic				VARCHAR(MAX)	NULL,
-	CONSTRAINT AK_DeclarativeConstraint UNIQUE (tableName, columnName, constraintName),
-	CONSTRAINT FK_DeclarativeConstraint_TableColumn FOREIGN KEY (tableName, columnName) REFERENCES "TableColumn" (tableName, columnName),
-	CONSTRAINT FK_DeclarativeConstraint_Super FOREIGN KEY (superConstraint) REFERENCES DeclarativeConstraint (ID),
-	CONSTRAINT CK_TypeDeclarative CHECK (constraintType IN ('UNIQUE', 'PRIMARY KEY', 'CHECK', 'FOREIGN KEY', 'DEFAULT'))
+	CONSTRAINT FK_DeclarativeConstraint_TableColumn FOREIGN KEY (tableName) REFERENCES "Table" (name),
+	CONSTRAINT CK_TypeDeclarative CHECK (constraintType IN ('UNIQUE', 'PRIMARY KEY', 'CHECK', 'FOREIGN KEY'))
+);
+
+CREATE TABLE DeclarativeConstraintColumns (
+	constraintName				VARCHAR(128)	NOT NULL,
+	columnName					VARCHAR(128)	NOT NULL,
+	CONSTRAINT PK_DeclarativeConstraintColumns PRIMARY KEY (constraintName, columnName),
+	CONSTRAINT FK_DeclarativeConstraint FOREIGN KEY (constraintName) REFERENCES DeclarativeConstraint (constraintName),
 );
 GO
 
@@ -93,6 +95,12 @@ INSERT INTO TableColumn (tableName, columnName, columnSequenceNumber, moduleName
 
 INSERT INTO ProceduralConstraint (constraintName, moduleName, constraintType, tableName, constraintLogic, constraintMetaData) VALUES		('ProcConstraint1', 'Employee', 'TRIGGER', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', 'AFTER UPDATE'),
 																																			('ProcConstraint2', 'Stock', 'PROC', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', '@VAR1 INT')
+
+INSERT INTO DeclarativeConstraint (constraintName, tableName, constraintType, constraintLogic) VALUES										('CK_TEST1', 'Article', 'CHECK', '1 = 1'),
+																																			('AK_TEST2', 'Article', 'UNIQUE', NULL)
+
+INSERT INTO DeclarativeConstraintColumns (constraintName, columnName) VALUES																('AK_TEST2', 'productIdBackup'),
+																																			('AK_TEST2', 'productIdBackup2')
 GO
 
 CREATE PROC GenerateDDL
@@ -120,10 +128,18 @@ AS BEGIN
 
 				-- Add the code and insert the metadata
 				SET @TABLESQL += 'CREATE TABLE ' + @TABLENAME + ' ('
+				-- Columns
 				SELECT @TABLESQL = (@TABLESQL + CHAR(13)+CHAR(10) + columnName + ' ' + columnType + ' ' + CASE WHEN mandatory = 1 THEN 'NOT NULL' ELSE 'NULL' END + ',')
 					FROM TableColumn
 					WHERE tableName = @TABLENAME
 					AND moduleName IN (SELECT moduleName FROM @PREFERENCES)
+				-- Constraints
+				DECLARE @CONSTRAINTCOLUMNS VARCHAR(MAX) = ','
+				SELECT @CONSTRAINTCOLUMNS = (@CONSTRAINTCOLUMNS + ', ' + DC.columnName) FROM DeclarativeConstraintColumns DC JOIN DeclarativeConstraint D ON D.constraintName = DC.constraintName
+				SELECT @TABLESQL = (@TABLESQL + CHAR(13)+CHAR(10) + 'CONSTRAINT ' + constraintName + ' ' + constraintType + ' (' + CASE WHEN constraintLogic IS NULL THEN @CONSTRAINTCOLUMNS ELSE constraintLogic END + '),')
+					FROM DeclarativeConstraint D
+					WHERE tableName = @TABLENAME
+					AND constraintType <> 'FOREIGN KEY'
 				SET @TABLESQL += ',' + CHAR(13)+CHAR(10) + ');'
 				SET @TABLESQL = REPLACE(@TABLESQL, ',,', '')
 				-- Add two linebreaks
