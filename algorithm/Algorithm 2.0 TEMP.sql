@@ -67,6 +67,11 @@ CREATE TABLE DeclarativeConstraint (
 );
 GO
 
+CREATE TYPE PreferenceTable AS TABLE (
+	moduleName VARCHAR(255) PRIMARY KEY
+); 
+GO 
+
 INSERT INTO Module (name, mandatory, superModule) VALUES																		('Sales', 1, NULL),
 																																('Purchase', 0, NULL),
 																																('Stock', 1, NULL),
@@ -88,22 +93,15 @@ INSERT INTO ProceduralConstraint (constraintName, constraintType, tableName, con
 GO
 
 CREATE PROC GenerateDDL
-	@MODULE1 BIT,
-	@MODULE2 BIT,
-	@MODULE3 BIT,
-	@MODULE4 BIT
+	@PREFERENCES PreferenceTable READONLY
 AS BEGIN
 	SET NOCOUNT ON
 
 	BEGIN TRY
-		-- Create and fill the temporary database with the preferences
-		DECLARE @PREFERENCES TABLE (moduleName VARCHAR(255) PRIMARY KEY, toBeGenerated INT NOT NULL)
-		INSERT INTO @PREFERENCES (moduleName, toBeGenerated) VALUES ('Stock', @MODULE1), ('Purchase', @MODULE2), ('Sales', @MODULE3), ('Employee', @MODULE4)
-
 		-- Generate the tables of the modules
 		-- Loopt through all the tables that are in an module that we need to generate
 		DECLARE @TABLENAME VARCHAR(128)
-		DECLARE CUR_TABLES CURSOR DYNAMIC FOR SELECT name FROM "Table" WHERE moduleName IN (SELECT moduleName FROM @PREFERENCES WHERE toBeGenerated = 1)
+		DECLARE CUR_TABLES CURSOR DYNAMIC FOR SELECT name FROM "Table" WHERE moduleName IN (SELECT moduleName FROM @PREFERENCES)
 		OPEN CUR_TABLES
 		FETCH FIRST FROM CUR_TABLES INTO @TABLENAME 
 		WHILE (@@FETCH_STATUS <> -1)
@@ -116,7 +114,7 @@ AS BEGIN
 				SELECT @TABLESQL = (@TABLESQL + CHAR(13)+CHAR(10) + columnName + ' ' + columnType + ' ' + CASE WHEN mandatory = 1 THEN 'NOT NULL' ELSE 'NULL' END + ',')
 					FROM TableColumn
 					WHERE tableName = @TABLENAME
-					AND moduleName IN (SELECT moduleName FROM @PREFERENCES WHERE toBeGenerated = 1)
+					AND moduleName IN (SELECT moduleName FROM @PREFERENCES)
 				SET @TABLESQL += ',' + CHAR(13)+CHAR(10) + ');'
 				SET @TABLESQL = REPLACE(@TABLESQL, ',,', '')
 				-- Add two linebreaks
@@ -132,7 +130,7 @@ AS BEGIN
 		-- Generate the procedural constraints
 		-- Loopt through all the constraints that are in an module that we need to generate
 		DECLARE @PROCEDURALCONSTRAINTNAME VARCHAR(128)
-		DECLARE CUR_PROCEDURALCONSTRAINT CURSOR DYNAMIC FOR SELECT constraintName FROM ProceduralConstraint P JOIN "Table" T ON P.tableName = T.name WHERE T.moduleName IN (SELECT moduleName FROM @PREFERENCES WHERE toBeGenerated = 1)
+		DECLARE CUR_PROCEDURALCONSTRAINT CURSOR DYNAMIC FOR SELECT constraintName FROM ProceduralConstraint P JOIN "Table" T ON P.tableName = T.name WHERE T.moduleName IN (SELECT moduleName FROM @PREFERENCES)
 		OPEN CUR_PROCEDURALCONSTRAINT
 		FETCH FIRST FROM CUR_PROCEDURALCONSTRAINT INTO @PROCEDURALCONSTRAINTNAME 
 		WHILE (@@FETCH_STATUS <> -1)
@@ -168,4 +166,9 @@ AS BEGIN
 END
 GO
 
-EXEC GenerateDDL 1, 0, 1, 1
+DECLARE @PREFERENCES AS PreferenceTable
+INSERT INTO @PREFERENCES (moduleName) VALUES	('Stock'),
+												('Purchase'),
+												('Sales'),
+												('Employee')
+EXEC GenerateDDL @PREFERENCES
