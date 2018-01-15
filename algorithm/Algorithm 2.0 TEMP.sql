@@ -75,7 +75,7 @@ CREATE TYPE PreferenceTable AS TABLE (
 ); 
 GO 
 
-INSERT INTO Module (name, mandatory, superModule) VALUES																					('Sales', 1, NULL),
+INSERT INTO Module (name, mandatory, superModule) VALUES																					('Sales', 0, NULL),
 																																			('Purchase', 0, NULL),
 																																			('Stock', 1, NULL),
 																																			('Employee', 0, 'Sales')
@@ -96,11 +96,17 @@ INSERT INTO ProceduralConstraint (constraintName, moduleName, constraintType, ta
 GO
 
 CREATE PROC GenerateDDL
-	@PREFERENCES PreferenceTable READONLY
+	@PREFERENCEDMODULES PreferenceTable READONLY
 AS BEGIN
 	SET NOCOUNT ON
 
 	BEGIN TRY
+		-- Declare the preference table containing all the modules that must be generated
+		DECLARE @PREFERENCES PreferenceTable
+
+		-- Insert all the mandatory modules and preferenced modules into the preferences variable
+		INSERT INTO @PREFERENCES (moduleName) SELECT name FROM (SELECT name FROM Module WHERE mandatory = 1 UNION SELECT moduleName AS name FROM @PREFERENCEDMODULES) AS ALLMODULES
+
 		-- Generate the tables of the modules
 		-- Loopt through all the tables that are in an module that we need to generate
 		DECLARE @TABLENAME VARCHAR(128)
@@ -133,8 +139,7 @@ AS BEGIN
 		-- Generate the procedural constraints
 		-- Loopt through all the constraints that are in an module that we need to generate
 		DECLARE @PROCEDURALCONSTRAINTNAME VARCHAR(128)
-		--DECLARE CUR_PROCEDURALCONSTRAINT CURSOR DYNAMIC FOR SELECT constraintName FROM ProceduralConstraint P JOIN "Table" T ON P.tableName = T.name WHERE T.moduleName IN (SELECT moduleName FROM @PREFERENCES)
-		DECLARE CUR_PROCEDURALCONSTRAINT CURSOR DYNAMIC FOR SELECT constraintName FROM ProceduralConstraint WHERE (tableName IN (SELECT name FROM "Table" WHERE moduleName IN (SELECT moduleName FROM @PREFERENCES))	OR tableName IS NULL) AND moduleName IN (SELECT moduleName FROM @PREFERENCES)
+		DECLARE CUR_PROCEDURALCONSTRAINT CURSOR DYNAMIC FOR SELECT constraintName FROM ProceduralConstraint WHERE (tableName IN (SELECT name FROM "Table" WHERE moduleName IN (SELECT moduleName FROM @PREFERENCES)) OR tableName IS NULL) AND moduleName IN (SELECT moduleName FROM @PREFERENCES)
 		OPEN CUR_PROCEDURALCONSTRAINT
 		FETCH FIRST FROM CUR_PROCEDURALCONSTRAINT INTO @PROCEDURALCONSTRAINTNAME 
 		WHILE (@@FETCH_STATUS <> -1)
