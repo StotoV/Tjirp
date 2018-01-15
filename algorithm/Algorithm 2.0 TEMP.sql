@@ -45,12 +45,14 @@ CREATE TABLE TableColumn (
 CREATE TABLE ProceduralConstraint (
 	constraintName				VARCHAR(128)	NOT NULL,
 	tableName					VARCHAR(128)	NULL,
+	moduleName					VARCHAR(255)	NOT NULL,
 	constraintType				VARCHAR(128)    NOT NULL,
 	constraintLogic				VARCHAR(MAX)	NOT NULL,
 	constraintMetaData			VARCHAR(MAX)	NULL,
 	CONSTRAINT PK_ProceduralConstraint PRIMARY KEY (constraintName),
 	CONSTRAINT FK_ProceduralConstraint_Table FOREIGN KEY (tableName) REFERENCES "Table" (name),
-	CONSTRAINT CK_Type CHECK (constraintType IN ('TRIGGER', 'PROC'))
+	CONSTRAINT FK_ProceduralConstraint_Module FOREIGN KEY (moduleName) REFERENCES Module(name),
+	CONSTRAINT CK_TypeProcedural CHECK (constraintType IN ('TRIGGER', 'PROC'))
 );
 
 CREATE TABLE DeclarativeConstraint (
@@ -63,7 +65,8 @@ CREATE TABLE DeclarativeConstraint (
 	constraintLogic				VARCHAR(MAX)	NULL,
 	CONSTRAINT AK_DeclarativeConstraint UNIQUE (tableName, columnName, constraintName),
 	CONSTRAINT FK_DeclarativeConstraint_TableColumn FOREIGN KEY (tableName, columnName) REFERENCES "TableColumn" (tableName, columnName),
-	CONSTRAINT FK_DeclarativeConstraint_Super FOREIGN KEY (superConstraint) REFERENCES DeclarativeConstraint (ID)
+	CONSTRAINT FK_DeclarativeConstraint_Super FOREIGN KEY (superConstraint) REFERENCES DeclarativeConstraint (ID),
+	CONSTRAINT CK_TypeDeclarative CHECK (constraintType IN ('UNIQUE', 'PRIMARY KEY', 'CHECK', 'FOREIGN KEY', 'DEFAULT'))
 );
 GO
 
@@ -72,24 +75,24 @@ CREATE TYPE PreferenceTable AS TABLE (
 ); 
 GO 
 
-INSERT INTO Module (name, mandatory, superModule) VALUES																		('Sales', 1, NULL),
-																																('Purchase', 0, NULL),
-																																('Stock', 1, NULL),
-																																('Employee', 0, 'Sales')
+INSERT INTO Module (name, mandatory, superModule) VALUES																					('Sales', 1, NULL),
+																																			('Purchase', 0, NULL),
+																																			('Stock', 1, NULL),
+																																			('Employee', 0, 'Sales')
 
-INSERT INTO "Table" (name, moduleName) VALUES																					('Article', 'Stock'),
-																																('Component', 'Stock'),
-																																('SalesOrder', 'Sales'),
-																																('Employee', 'Employee'),
-																																('PurchaseOrder', 'Purchase')
+INSERT INTO "Table" (name, moduleName) VALUES																								('Article', 'Stock'),
+																																			('Component', 'Stock'),
+																																			('SalesOrder', 'Sales'),
+																																			('Employee', 'Employee'),
+																																			('PurchaseOrder', 'Purchase')
 
-INSERT INTO TableColumn (tableName, columnName, columnSequenceNumber, moduleName, columnType, mandatory) VALUES					('Article', 'productId', 1, 'Stock', 'INT', 1),
-																																('Article', 'productIdBackup', 2, 'Stock', 'INT', 1),
-																																('Article', 'productIdBackup2', 3, 'Stock', 'INT', 1),
-																																('Article', 'productIdBackupOtherModule', 4, 'Purchase', 'INT', 1)
+INSERT INTO TableColumn (tableName, columnName, columnSequenceNumber, moduleName, columnType, mandatory) VALUES								('Article', 'productId', 1, 'Stock', 'INT', 1),
+																																			('Article', 'productIdBackup', 2, 'Stock', 'INT', 1),
+																																			('Article', 'productIdBackup2', 3, 'Stock', 'INT', 1),
+																																			('Article', 'productIdBackupOtherModule', 4, 'Purchase', 'INT', 1)
 
-INSERT INTO ProceduralConstraint (constraintName, constraintType, tableName, constraintLogic, constraintMetaData) VALUES		('ProcConstraint1', 'TRIGGER', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', 'AFTER UPDATE'),
-																																('ProcConstraint2', 'PROC', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', '@VAR1 INT')
+INSERT INTO ProceduralConstraint (constraintName, moduleName, constraintType, tableName, constraintLogic, constraintMetaData) VALUES		('ProcConstraint1', 'Employee', 'TRIGGER', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', 'AFTER UPDATE'),
+																																			('ProcConstraint2', 'Stock', 'PROC', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', '@VAR1 INT')
 GO
 
 CREATE PROC GenerateDDL
@@ -130,7 +133,8 @@ AS BEGIN
 		-- Generate the procedural constraints
 		-- Loopt through all the constraints that are in an module that we need to generate
 		DECLARE @PROCEDURALCONSTRAINTNAME VARCHAR(128)
-		DECLARE CUR_PROCEDURALCONSTRAINT CURSOR DYNAMIC FOR SELECT constraintName FROM ProceduralConstraint P JOIN "Table" T ON P.tableName = T.name WHERE T.moduleName IN (SELECT moduleName FROM @PREFERENCES)
+		--DECLARE CUR_PROCEDURALCONSTRAINT CURSOR DYNAMIC FOR SELECT constraintName FROM ProceduralConstraint P JOIN "Table" T ON P.tableName = T.name WHERE T.moduleName IN (SELECT moduleName FROM @PREFERENCES)
+		DECLARE CUR_PROCEDURALCONSTRAINT CURSOR DYNAMIC FOR SELECT constraintName FROM ProceduralConstraint WHERE (tableName IN (SELECT name FROM "Table" WHERE moduleName IN (SELECT moduleName FROM @PREFERENCES))	OR tableName IS NULL) AND moduleName IN (SELECT moduleName FROM @PREFERENCES)
 		OPEN CUR_PROCEDURALCONSTRAINT
 		FETCH FIRST FROM CUR_PROCEDURALCONSTRAINT INTO @PROCEDURALCONSTRAINTNAME 
 		WHILE (@@FETCH_STATUS <> -1)
@@ -169,6 +173,6 @@ GO
 DECLARE @PREFERENCES AS PreferenceTable
 INSERT INTO @PREFERENCES (moduleName) VALUES	('Stock'),
 												('Purchase'),
-												('Sales'),
-												('Employee')
+												('Employee'),
+												('Sales')
 EXEC GenerateDDL @PREFERENCES
