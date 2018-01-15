@@ -49,7 +49,8 @@ CREATE TABLE ProceduralConstraint (
 	constraintLogic				VARCHAR(MAX)	NOT NULL,
 	constraintMetaData			VARCHAR(MAX)	NULL,
 	CONSTRAINT PK_ProceduralConstraint PRIMARY KEY (constraintName),
-	CONSTRAINT FK_ProceduralConstraint_Table FOREIGN KEY (tableName) REFERENCES "Table" (name)
+	CONSTRAINT FK_ProceduralConstraint_Table FOREIGN KEY (tableName) REFERENCES "Table" (name),
+	CONSTRAINT CK_Type CHECK (constraintType IN ('TRIGGER', 'PROC'))
 );
 
 CREATE TABLE DeclarativeConstraint (
@@ -66,22 +67,24 @@ CREATE TABLE DeclarativeConstraint (
 );
 GO
 
-INSERT INTO Module (name, mandatory, superModule) VALUES														('Sales', 1, NULL),
-																												('Purchase', 0, NULL),
-																												('Stock', 1, NULL),
-																												('Employee', 0, 'Sales')
+INSERT INTO Module (name, mandatory, superModule) VALUES																		('Sales', 1, NULL),
+																																('Purchase', 0, NULL),
+																																('Stock', 1, NULL),
+																																('Employee', 0, 'Sales')
 
-INSERT INTO "Table" (name, moduleName) VALUES																	('Article', 'Stock'),
-																												('Component', 'Stock'),
-																												('SalesOrder', 'Sales'),
-																												('Employee', 'Employee'),
-																												('PurchaseOrder', 'Purchase')
+INSERT INTO "Table" (name, moduleName) VALUES																					('Article', 'Stock'),
+																																('Component', 'Stock'),
+																																('SalesOrder', 'Sales'),
+																																('Employee', 'Employee'),
+																																('PurchaseOrder', 'Purchase')
 
-INSERT INTO TableColumn (tableName, columnName, columnSequenceNumber, moduleName, columnType, mandatory) VALUES ('Article', 'productId', 1, 'Stock', 'INT', 1),
-																												('Article', 'productIdBackup', 2, 'Stock', 'INT', 1),
-																												('Article', 'productIdBackup2', 3, 'Stock', 'INT', 1),
-																												('Article', 'productIdBackupOtherModule', 4, 'Purchase', 'INT', 1)
+INSERT INTO TableColumn (tableName, columnName, columnSequenceNumber, moduleName, columnType, mandatory) VALUES					('Article', 'productId', 1, 'Stock', 'INT', 1),
+																																('Article', 'productIdBackup', 2, 'Stock', 'INT', 1),
+																																('Article', 'productIdBackup2', 3, 'Stock', 'INT', 1),
+																																('Article', 'productIdBackupOtherModule', 4, 'Purchase', 'INT', 1)
 
+INSERT INTO ProceduralConstraint (constraintName, constraintType, tableName, constraintLogic, constraintMetaData) VALUES		('ProcConstraint1', 'TRIGGER', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', 'AFTER UPDATE'),
+																																('ProcConstraint2', 'PROC', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', '@VAR1 INT')
 GO
 
 CREATE PROC GenerateDDL
@@ -124,7 +127,40 @@ AS BEGIN
 				-- Get the next record ready
 				FETCH NEXT FROM CUR_TABLES INTO @TABLENAME 
 			END
-			CLOSE CUR_TABLES DEALLOCATE CUR_TABLES
+		CLOSE CUR_TABLES DEALLOCATE CUR_TABLES
+
+		-- Generate the procedural constraints
+		-- Loopt through all the constraints that are in an module that we need to generate
+		DECLARE @PROCEDURALCONSTRAINTNAME VARCHAR(128)
+		DECLARE CUR_PROCEDURALCONSTRAINT CURSOR DYNAMIC FOR SELECT constraintName FROM ProceduralConstraint P JOIN "Table" T ON P.tableName = T.name WHERE T.moduleName IN (SELECT moduleName FROM @PREFERENCES WHERE toBeGenerated = 1)
+		OPEN CUR_PROCEDURALCONSTRAINT
+		FETCH FIRST FROM CUR_PROCEDURALCONSTRAINT INTO @PROCEDURALCONSTRAINTNAME 
+		WHILE (@@FETCH_STATUS <> -1)
+			BEGIN
+				-- The variable to store the create constraint sql in
+				DECLARE @PROCEDURALCONSTRAINTSQL VARCHAR(MAX) = ''
+				SELECT @PROCEDURALCONSTRAINTSQL = (@PROCEDURALCONSTRAINTSQL + 'CREATE ' + constraintType + ' ' + @PROCEDURALCONSTRAINTNAME + CHAR(13)+CHAR(10))
+					FROM ProceduralConstraint
+					WHERE constraintName = @PROCEDURALCONSTRAINTNAME
+				
+				-- Add the ON TABLENAME if the constraint is of type TRIGGER
+				IF 'TRIGGER' = (SELECT constraintType FROM ProceduralConstraint WHERE constraintName = @PROCEDURALCONSTRAINTNAME)
+					BEGIN
+						SELECT @PROCEDURALCONSTRAINTSQL = (@PROCEDURALCONSTRAINTSQL + 'ON ' + tableName + CHAR(13)+CHAR(10))
+							FROM ProceduralConstraint
+							WHERE constraintName = @PROCEDURALCONSTRAINTNAME
+					END
+
+				SELECT @PROCEDURALCONSTRAINTSQL = (@PROCEDURALCONSTRAINTSQL + constraintMetaData + CHAR(13)+CHAR(10) + 'AS BEGIN' + CHAR(13)+CHAR(10) + constraintLogic + CHAR(13)+CHAR(10) + 'END')
+					FROM ProceduralConstraint
+					WHERE constraintName = @PROCEDURALCONSTRAINTNAME
+				SET @PROCEDURALCONSTRAINTSQL += CHAR(13)+CHAR(10)+CHAR(13)+CHAR(10)
+				PRINT @PROCEDURALCONSTRAINTSQL
+
+				-- Get the next record ready
+				FETCH NEXT FROM CUR_PROCEDURALCONSTRAINT INTO @PROCEDURALCONSTRAINTNAME 
+			END
+		CLOSE CUR_PROCEDURALCONSTRAINT DEALLOCATE CUR_PROCEDURALCONSTRAINT
 	END TRY
 	BEGIN CATCH
 		;THROW
