@@ -52,7 +52,7 @@ SELECT
       '''' + OBJECT_NAME (fk.parent_object_id) + ''',' +                                                                -- Table name
       '''' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + ''',' +                              -- Column name
       '''' + OBJECT_NAME (fk.object_id) + ''',' +                                                                       -- Constraint name
-      '''foreignKey'', ' +
+      '''FOREIGN KEY'', ' +
       '''ALTER TABLE ' + OBJECT_NAME (fk.parent_object_id) + ' ADD CONSTRAINT ' + OBJECT_NAME (fk.object_id) + ' ' +    -- Table name + constraint name
       'FOREIGN KEY (' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + ') ' +                    -- Column name on which the foreign key is placed
       'REFERENCES ' + OBJECT_NAME (fk_columns.referenced_object_id) +                                                   -- Referenced table name
