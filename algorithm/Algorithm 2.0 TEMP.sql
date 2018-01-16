@@ -78,8 +78,8 @@ GO
 
 CREATE TYPE PreferenceTable AS TABLE (
 	moduleName VARCHAR(255) PRIMARY KEY
-); 
-GO 
+);
+GO
 
 INSERT INTO Module (name, mandatory) VALUES																									('Sales', 0),
 																																			('Purchase', 0),

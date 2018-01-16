@@ -178,7 +178,7 @@ SELECT
     'INSERT INTO DeclarativeConstraint (constraintName, tableName, constraintType) VALUES (' +
     '''' + tc.CONSTRAINT_NAME + ''', ' +
     '''' + tc.TABLE_NAME + ''', ' +
-    '''FOREIGN KEY '');'
+    '''PRIMARY KEY'');'
 FROM
     INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
 WHERE
