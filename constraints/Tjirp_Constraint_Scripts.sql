@@ -495,8 +495,7 @@ GO
 
 /**Constraint 8 **/
 
-CREATE TRIGGER
-    TR08_SalesOrderLine
+CREATE TRIGGER TR08_SalesOrderLine
 ON SalesOrderLine
 AFTER INSERT, UPDATE
 AS
@@ -508,8 +507,21 @@ BEGIN
     BEGIN TRY
         -- Update Article table if it has an amount
         -- attribute
-        IF COL_LENGTH('[dbo].Article', 'amount') IS NOT NULL  
+        IF COL_LENGTH('[dbo].Article', 'amount') IS NOT NULL
         BEGIN
+
+            -- Check if the amount isn't going to be less than 0
+            IF EXISTS (
+                SELECT 1
+                FROM Article a INNER JOIN inserted i
+                ON a.articleNo = i.Article_articleNo
+                WHERE a.amount - i.amount < 0
+            )
+            BEGIN
+                ;THROW 50000, 'The amount is going to be less than 0', 1
+            END
+
+            -- Update the amount
             UPDATE
                 Article
             SET
@@ -522,6 +534,21 @@ BEGIN
         -- Update ArticleInStorageCube if it exists
         IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'ArticleInStorageCube')
         BEGIN
+
+            -- Check if the amount isn't going to be less than 0
+            IF EXISTS (
+                SELECT 1
+                FROM ArticleInStorageCube aisc INNER JOIN inserted i
+                ON aisc.Article_articleNo = i.Article_articleNo
+                    AND aisc.StorageCube_Location_address = i.ArticleInStorageCube_StorageCube_Location_address
+                    AND aisc.StorageCube_referenceNo = i.ArticleInStorageCube_StorageCube_referenceNo
+                WHERE aisc.amount - i.amount < 0
+            )
+            BEGIN
+                ;THROW 50000, 'The amount is going to be less than 0', 1
+            END
+
+            -- Update the amount
             UPDATE
                 ArticleInStorageCube
             SET
@@ -535,7 +562,21 @@ BEGIN
 
         -- Update ArticleInLocation if it exists
         IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'ArticleInLocation')
-        BEGIN -- (Article_ArticleNo, Location_address)
+        BEGIN
+
+            -- Check if the amount isn't going to be less than 0
+            IF EXISTS (
+                SELECT 1
+                FROM ArticleInLocation ail INNER JOIN inserted i
+                ON ail.Article_articleNo = i.Article_articleNo
+                    AND ail.Location_address = i.ArticleInLocation_Location_address
+                WHERE ail.amount - i.amount < 0
+            )
+            BEGIN
+                ;THROW 50000, 'The amount is going to be less than 0', 1
+            END
+
+            -- Update the amount
             UPDATE
                 ArticleInLocation
             SET
@@ -549,6 +590,19 @@ BEGIN
         -- Update Supply if it exists
         IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Supply')
         BEGIN
+
+            -- Check if the amount isn't going to be less than 0
+            IF EXISTS (
+                SELECT 1
+                FROM Supply s INNER JOIN inserted i
+                ON s.supplyNo = i.Supply_supplyNo
+                WHERE s.amount - i.amount < 0
+            )
+            BEGIN
+                ;THROW 50000, 'The amount is going to be less than 0', 1
+            END
+
+            -- Update the amount
             UPDATE
                 Supply
             SET
@@ -563,7 +617,6 @@ BEGIN
         ;THROW
     END CATCH
 END
-GO
 
 /**Constraint 9 **/
 
@@ -590,6 +643,18 @@ BEGIN
                 Article a INNER JOIN inserted i
                 ON a.articleNo = i.Article_articleNo;
         END
+
+		  -- Check if the amount isn't going to be less than 0
+            IF EXISTS (
+                SELECT 1
+                FROM ArticleInLocation ail INNER JOIN inserted i
+                ON ail.Article_articleNo = i.Article_articleNo
+                    AND ail.Location_address = i.ArticleInLocation_Location_address
+                WHERE ail.amount - i.amount < 0
+            )
+            BEGIN
+                ;THROW 50000, 'The amount is going to be less than 0', 1
+            END
 
         -- Update ArticleInStorageCube if it exists
         IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'ArticleInStorageCube')
