@@ -58,6 +58,7 @@ CREATE TABLE ProceduralConstraint (
 CREATE TABLE DeclarativeConstraint (
 	constraintName				VARCHAR(128)	NOT NULL	PRIMARY KEY,
 	tableName					VARCHAR(128)	NOT NULL,
+	referencedTableName			VARCHAR(128)	NULL,
 	constraintType				VARCHAR(128)	NULL,	
 	constraintLogic				VARCHAR(MAX)	NULL,
 	CONSTRAINT FK_DeclarativeConstraint_TableColumn FOREIGN KEY (tableName) REFERENCES "Table" (name),
@@ -67,7 +68,8 @@ CREATE TABLE DeclarativeConstraint (
 CREATE TABLE DeclarativeConstraintColumns (
 	constraintName				VARCHAR(128)	NOT NULL,
 	columnName					VARCHAR(128)	NOT NULL,
-	CONSTRAINT PK_DeclarativeConstraintColumns PRIMARY KEY (constraintName, columnName),
+	isReferenced				BIT	DEFAULT 0	NOT NULL,
+	CONSTRAINT PK_DeclarativeConstraintColumns PRIMARY KEY (constraintName, columnName, isReferenced),
 	CONSTRAINT FK_DeclarativeConstraint FOREIGN KEY (constraintName) REFERENCES DeclarativeConstraint (constraintName),
 );
 GO
@@ -91,16 +93,20 @@ INSERT INTO "Table" (name, moduleName) VALUES																								('Article',
 INSERT INTO TableColumn (tableName, columnName, columnSequenceNumber, moduleName, columnType, mandatory) VALUES								('Article', 'productId', 1, 'Stock', 'INT', 1),
 																																			('Article', 'productIdBackup', 2, 'Stock', 'INT', 1),
 																																			('Article', 'productIdBackup2', 3, 'Stock', 'INT', 1),
-																																			('Article', 'productIdBackupOtherModule', 4, NULL, 'INT', 1)
+																																			('Article', 'productIdBackupOtherModule', 4, NULL, 'INT', 1),
+																																			('Component', 'productIdBackupOtherModule', 1, NULL, 'INT', 1)
 
 INSERT INTO ProceduralConstraint (constraintName, moduleName, constraintType, tableName, constraintLogic, constraintMetaData) VALUES		('ProcConstraint1', 'Employee', 'TRIGGER', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', 'AFTER UPDATE'),
 																																			('ProcConstraint2', 'Stock', 'PROC', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', '@VAR1 INT')
 
-INSERT INTO DeclarativeConstraint (constraintName, tableName, constraintType, constraintLogic) VALUES										('CK_TEST1', 'Article', 'CHECK', '1 = 1'),
-																																			('AK_TEST2', 'Article', 'UNIQUE', NULL)
+INSERT INTO DeclarativeConstraint (constraintName, tableName, referencedTableName, constraintType, constraintLogic) VALUES					('CK_TEST1', 'Article', NULL, 'CHECK', '1 = 1'),
+																																			('AK_TEST2', 'Article', NULL, 'UNIQUE', NULL),
+																																			('FK_TEST3', 'Article', 'Component', 'FOREIGN KEY', NULL)
 
-INSERT INTO DeclarativeConstraintColumns (constraintName, columnName) VALUES																('AK_TEST2', 'productIdBackup'),
-																																			('AK_TEST2', 'productIdBackup2')
+INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenced) VALUES													('AK_TEST2', 'productIdBackup', 0),
+																																			('AK_TEST2', 'productIdBackup2', 0),
+																																			('FK_TEST3', 'productIdBackupOtherModule', 0),
+																																			('FK_TEST3', 'productIdBackupOtherModule', 1)
 GO
 
 CREATE PROC GenerateDDL
@@ -110,7 +116,8 @@ AS BEGIN
 
 	BEGIN TRY
 		-- Declare the preference table containing all the modules that must be generated
-		DECLARE @PREFERENCES PreferenceTable
+		DECLARE @PREFERENCES PreferenceTable,
+				@SQL VARCHAR(MAX) = ''
 
 		-- Insert all the mandatory modules and preferenced modules into the preferences variable
 		INSERT INTO @PREFERENCES (moduleName) SELECT name FROM (SELECT name FROM Module WHERE mandatory = 1 UNION SELECT moduleName AS name FROM @PREFERENCEDMODULES) AS ALLMODULES
@@ -123,34 +130,49 @@ AS BEGIN
 		FETCH FIRST FROM CUR_TABLES INTO @TABLENAME 
 		WHILE (@@FETCH_STATUS <> -1)
 			BEGIN
-				-- The variable to store the create table sql in
-				DECLARE @TABLESQL VARCHAR(MAX) = ''
-
 				-- Add the code and insert the metadata
-				SET @TABLESQL += 'CREATE TABLE ' + @TABLENAME + ' ('
+				SET @SQL += 'CREATE TABLE ' + @TABLENAME + ' ('
 				-- Columns
-				SELECT @TABLESQL = (@TABLESQL + CHAR(13)+CHAR(10) + columnName + ' ' + columnType + ' ' + CASE WHEN mandatory = 1 THEN 'NOT NULL' ELSE 'NULL' END + ',')
+				SELECT @SQL = (@SQL + CHAR(13)+CHAR(10) + columnName + ' ' + columnType + ' ' + CASE WHEN mandatory = 1 THEN 'NOT NULL' ELSE 'NULL' END + ',')
 					FROM TableColumn
 					WHERE tableName = @TABLENAME
-					AND moduleName IN (SELECT moduleName FROM @PREFERENCES) OR moduleName IS NULL
+					AND (moduleName IN (SELECT moduleName FROM @PREFERENCES) OR moduleName IS NULL)
 				-- Constraints
-				DECLARE @CONSTRAINTCOLUMNS VARCHAR(MAX) = ','
-				SELECT @CONSTRAINTCOLUMNS = (@CONSTRAINTCOLUMNS + ', ' + DC.columnName) FROM DeclarativeConstraintColumns DC JOIN DeclarativeConstraint D ON D.constraintName = DC.constraintName
-				SELECT @TABLESQL = (@TABLESQL + CHAR(13)+CHAR(10) + 'CONSTRAINT ' + constraintName + ' ' + constraintType + ' (' + CASE WHEN constraintLogic IS NULL THEN @CONSTRAINTCOLUMNS ELSE constraintLogic END + '),')
+				SELECT @SQL = (@SQL + CHAR(13)+CHAR(10) + 'CONSTRAINT ' + constraintName + ' ' + constraintType + ' (' + CASE WHEN constraintLogic IS NULL THEN (SELECT (STUFF((SELECT ', ' + DCC.columnName FROM DeclarativeConstraintColumns DCC JOIN DeclarativeConstraint DC ON DC.constraintName = DCC.constraintName WHERE DC.constraintName = D.constraintName FOR XML PATH('')), 1, 2, '')) AS StringValue) ELSE constraintLogic END + '),')
 					FROM DeclarativeConstraint D
 					WHERE tableName = @TABLENAME
 					AND constraintType <> 'FOREIGN KEY'
-				SET @TABLESQL += ',' + CHAR(13)+CHAR(10) + ');'
-				SET @TABLESQL = REPLACE(@TABLESQL, ',,', '')
+				SET @SQL += ',' + CHAR(13)+CHAR(10) + ');'
 				-- Add two linebreaks
-				SET @TABLESQL += CHAR(13)+CHAR(10)+CHAR(13)+CHAR(10)
-
-				PRINT @TABLESQL
+				SET @SQL += CHAR(13)+CHAR(10) + 'GO' + CHAR(13)+CHAR(10)+CHAR(13)+CHAR(10)
 
 				-- Get the next record ready
 				FETCH NEXT FROM CUR_TABLES INTO @TABLENAME 
 			END
 		CLOSE CUR_TABLES DEALLOCATE CUR_TABLES
+
+		-- Generate the foreign key constraints
+		-- Loopt through all the constraints that are in an module that we need to generate
+		DECLARE @FOREIGNKEYNAME VARCHAR(128)
+		DECLARE CUR_FOREIGNKEYS CURSOR DYNAMIC FOR SELECT constraintName FROM DeclarativeConstraint WHERE (tableName IN (SELECT name FROM "Table" WHERE moduleName IN (SELECT moduleName FROM @PREFERENCES)) AND referencedTableName IN (SELECT name FROM "Table" WHERE moduleName IN (SELECT moduleName FROM @PREFERENCES))) AND constraintType = 'FOREIGN KEY'
+		OPEN CUR_FOREIGNKEYS
+		FETCH FIRST FROM CUR_FOREIGNKEYS INTO @FOREIGNKEYNAME 
+		WHILE (@@FETCH_STATUS <> -1)
+			BEGIN
+				DECLARE @FOREIGNKEYCOLUMNS VARCHAR(MAX) = ',',
+						@FOREIGNKEYREFERENCEDCOLUMNS VARCHAR(MAX) = ','
+				SELECT @FOREIGNKEYCOLUMNS = (@FOREIGNKEYCOLUMNS + ', ' + columnName) FROM DeclarativeConstraintColumns DC JOIN DeclarativeConstraint D ON D.constraintName = DC.constraintName WHERE DC.isReferenced = 0 AND D.constraintName = @FOREIGNKEYNAME
+				SELECT @FOREIGNKEYREFERENCEDCOLUMNS = (@FOREIGNKEYREFERENCEDCOLUMNS + ', ' + columnName) FROM DeclarativeConstraintColumns DC JOIN DeclarativeConstraint D ON D.constraintName = DC.constraintName WHERE DC.isReferenced = 1 AND D.constraintName = @FOREIGNKEYNAME
+				SELECT @SQL = (@SQL + 'ALTER TABLE ' + tableName + ' ADD CONSTRAINT ' + constraintName + ' FOREIGN KEY (' + @FOREIGNKEYCOLUMNS + ') REFERENCES ' + referencedTableName + ' (' + @FOREIGNKEYREFERENCEDCOLUMNS + ')')
+					FROM DeclarativeConstraint
+					WHERE constraintName = @FOREIGNKEYNAME
+				SET @SQL = REPLACE(@SQL, ',,', '')
+				SET @SQL += CHAR(13)+CHAR(10) + 'GO' + CHAR(13)+CHAR(10)+CHAR(13)+CHAR(10)
+
+			-- Get the next record ready
+				FETCH NEXT FROM CUR_FOREIGNKEYS INTO @FOREIGNKEYNAME 
+			END
+		CLOSE CUR_FOREIGNKEYS DEALLOCATE CUR_FOREIGNKEYS
 
 		-- Generate the procedural constraints
 		-- Loopt through all the constraints that are in an module that we need to generate
@@ -161,28 +183,29 @@ AS BEGIN
 		WHILE (@@FETCH_STATUS <> -1)
 			BEGIN
 				-- The variable to store the create constraint sql in
-				DECLARE @PROCEDURALCONSTRAINTSQL VARCHAR(MAX) = ''
-				SELECT @PROCEDURALCONSTRAINTSQL = (@PROCEDURALCONSTRAINTSQL + 'CREATE ' + constraintType + ' ' + @PROCEDURALCONSTRAINTNAME + CHAR(13)+CHAR(10))
+				SELECT @SQL = (@SQL + 'CREATE ' + constraintType + ' ' + @PROCEDURALCONSTRAINTNAME + CHAR(13)+CHAR(10))
 					FROM ProceduralConstraint
 					WHERE constraintName = @PROCEDURALCONSTRAINTNAME
 				
 				-- Add the ON TABLENAME if the constraint is of type TRIGGER
 				IF 'TRIGGER' = (SELECT constraintType FROM ProceduralConstraint WHERE constraintName = @PROCEDURALCONSTRAINTNAME)
 					BEGIN
-						SELECT @PROCEDURALCONSTRAINTSQL = (@PROCEDURALCONSTRAINTSQL + 'ON ' + tableName + CHAR(13)+CHAR(10))
+						SELECT @SQL = (@SQL + 'ON ' + tableName + CHAR(13)+CHAR(10))
 							FROM ProceduralConstraint
 							WHERE constraintName = @PROCEDURALCONSTRAINTNAME
 					END
 
-				SELECT @PROCEDURALCONSTRAINTSQL = (@PROCEDURALCONSTRAINTSQL + constraintMetaData + CHAR(13)+CHAR(10) + 'AS BEGIN' + CHAR(13)+CHAR(10) + constraintLogic + CHAR(13)+CHAR(10) + 'END')
+				SELECT @SQL = (@SQL + constraintMetaData + CHAR(13)+CHAR(10) + 'AS BEGIN' + CHAR(13)+CHAR(10) + constraintLogic + CHAR(13)+CHAR(10) + 'END')
 					FROM ProceduralConstraint
 					WHERE constraintName = @PROCEDURALCONSTRAINTNAME
-				SET @PROCEDURALCONSTRAINTSQL += CHAR(13)+CHAR(10)+CHAR(13)+CHAR(10)
-				PRINT @PROCEDURALCONSTRAINTSQL
+				SET @SQL += CHAR(13)+CHAR(10) + 'GO' + CHAR(13)+CHAR(10)+CHAR(13)+CHAR(10)
 
 				-- Get the next record ready
 				FETCH NEXT FROM CUR_PROCEDURALCONSTRAINT INTO @PROCEDURALCONSTRAINTNAME 
 			END
+
+			PRINT @SQL
+
 		CLOSE CUR_PROCEDURALCONSTRAINT DEALLOCATE CUR_PROCEDURALCONSTRAINT
 	END TRY
 	BEGIN CATCH
