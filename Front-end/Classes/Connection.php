@@ -1,7 +1,7 @@
 <?php
     class Connection {
         private $host = 'localhost';
-        private $database = 'master';
+        private $database = 'Tjirp';
         private $username = 'sa';
         private $password = 'dbrules';
         private $pdo;

@@ -16,10 +16,7 @@ GO
 CREATE TABLE Module (
 	name					VARCHAR(255)	NOT NULL,
 	mandatory				BIT				NOT NULL,
-	superModule				VARCHAR(255)    NULL,
 	CONSTRAINT PK_Modules PRIMARY KEY (name),
-	CONSTRAINT FK_Module_Super FOREIGN KEY (superModule) REFERENCES Module (name)
-
 );
 
 CREATE TABLE "Table" (
@@ -32,12 +29,10 @@ CREATE TABLE "Table" (
 CREATE TABLE TableColumn (
 	tableName				VARCHAR(128)	NOT NULL,
 	columnName				VARCHAR(128)	NOT NULL,
-	columnSequenceNumber	INT				NOT NULL,
 	moduleName				VARCHAR(255)	NULL,
 	columnType				VARCHAR(128)	NOT NULL,
 	mandatory				BIT				NOT NULL,
 	CONSTRAINT PK_TableColumn PRIMARY KEY (tableName, columnName),
-	CONSTRAINT AK_TableColumn UNIQUE (tableName, columnSequenceNumber),
 	CONSTRAINT FK_TableColumn_Table FOREIGN KEY (tableName) REFERENCES "Table"(name),
 	CONSTRAINT FK_TableColumn_Module FOREIGN KEY (moduleName) REFERENCES Module(name)
 );
@@ -79,10 +74,10 @@ CREATE TYPE PreferenceTable AS TABLE (
 ); 
 GO 
 
-INSERT INTO Module (name, mandatory, superModule) VALUES																					('Sales', 0, NULL),
-																																			('Purchase', 0, NULL),
-																																			('Stock', 1, NULL),
-																																			('Employee', 0, 'Sales')
+INSERT INTO Module (name, mandatory) VALUES																									('Sales', 0),
+																																			('Purchase', 0),
+																																			('Stock', 1),
+																																			('Employee', 0)
 
 INSERT INTO "Table" (name, moduleName) VALUES																								('Article', 'Stock'),
 																																			('Component', 'Stock'),
@@ -90,11 +85,11 @@ INSERT INTO "Table" (name, moduleName) VALUES																								('Article',
 																																			('Employee', 'Employee'),
 																																			('PurchaseOrder', 'Purchase')
 
-INSERT INTO TableColumn (tableName, columnName, columnSequenceNumber, moduleName, columnType, mandatory) VALUES								('Article', 'productId', 1, 'Stock', 'INT', 1),
-																																			('Article', 'productIdBackup', 2, 'Stock', 'INT', 1),
-																																			('Article', 'productIdBackup2', 3, 'Stock', 'INT', 1),
-																																			('Article', 'productIdBackupOtherModule', 4, NULL, 'INT', 1),
-																																			('Component', 'productIdBackupOtherModule', 1, NULL, 'INT', 1)
+INSERT INTO TableColumn (tableName, columnName, moduleName, columnType, mandatory) VALUES													('Article', 'productId', 'Stock', 'INT', 1),
+																																			('Article', 'productIdBackup', 'Stock', 'INT', 1),
+																																			('Article', 'productIdBackup2', 'Stock', 'INT', 1),
+																																			('Article', 'productIdBackupOtherModule', NULL, 'INT', 1),
+																																			('Component', 'productIdBackupOtherModule', NULL, 'INT', 1)
 
 INSERT INTO ProceduralConstraint (constraintName, moduleName, constraintType, tableName, constraintLogic, constraintMetaData) VALUES		('ProcConstraint1', 'Employee', 'TRIGGER', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', 'AFTER UPDATE'),
 																																			('ProcConstraint2', 'Stock', 'PROC', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', '@VAR1 INT')
@@ -110,7 +105,8 @@ INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenc
 GO
 
 CREATE PROC GenerateDDL
-	@PREFERENCEDMODULES PreferenceTable READONLY
+	@PREFERENCEDMODULES PreferenceTable READONLY,
+	@SQLOUTPUT VARCHAR(MAX) OUTPUT
 AS BEGIN
 	SET NOCOUNT ON
 
@@ -204,7 +200,8 @@ AS BEGIN
 				FETCH NEXT FROM CUR_PROCEDURALCONSTRAINT INTO @PROCEDURALCONSTRAINTNAME 
 			END
 
-			PRINT @SQL
+			--PRINT @SQL
+			SET @SQLOUTPUT = @SQL
 
 		CLOSE CUR_PROCEDURALCONSTRAINT DEALLOCATE CUR_PROCEDURALCONSTRAINT
 	END TRY
@@ -214,9 +211,11 @@ AS BEGIN
 END
 GO
 
-DECLARE @PREFERENCES AS PreferenceTable
+DECLARE @PREFERENCES AS PreferenceTable,
+		@OUTPUT VARCHAR(MAX)
 INSERT INTO @PREFERENCES (moduleName) VALUES	('Stock'),
 												('Purchase'),
 												('Employee'),
 												('Sales')
-EXEC GenerateDDL @PREFERENCES
+EXEC GenerateDDL @PREFERENCES, @OUTPUT OUTPUT
+PRINT @OUTPUT

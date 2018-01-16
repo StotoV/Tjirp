@@ -19,9 +19,9 @@
     </head>
     <body>
         <form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="post">
-            <input type="checkbox" name="sales" value="Verkoop module">
-            <input type="checkbox" name="purchase" value="Inkoop module">
-            <input type="checkbox" name="stock" value="Voorraad module">
+            <input type="checkbox" name="sales" value="Sales">
+            <input type="checkbox" name="purchase" value="Purchase">
+            <input type="checkbox" name="stock" value="Stock">
             <input type="submit" name="submit">
         </form>
     </body>
