@@ -73,6 +73,7 @@ ORDER BY
 -- Columns
 --
 SELECT
+    'INSERT INTO "Column" (name) VALUES (''' + COLUMN_NAME + '''); ' +
     'INSERT INTO TableColumn (tableName, columnName, columnType, mandatory) VALUES ' +
     '(''' + TABLE_NAME + ''', ''' + COLUMN_NAME + ''', ''' + DATA_TYPE +
 
@@ -105,33 +106,60 @@ ORDER BY
 -- Foreign keys
 --
 SELECT
-    'INSERT INTO DeclarativeConstraint (tableName, columnName, constraintName, constraintType, constraintLogic) VALUES (' +
-      '''' + OBJECT_NAME (fk.parent_object_id) + ''',' +                                                                -- Table name
-      '''' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + ''',' +                              -- Column name
-      '''' + OBJECT_NAME (fk.object_id) + ''',' +                                                                       -- Constraint name
-      '''FOREIGN KEY'', ' +
-      '''ALTER TABLE ' + OBJECT_NAME (fk.parent_object_id) + ' ADD CONSTRAINT ' + OBJECT_NAME (fk.object_id) + ' ' +    -- Table name + constraint name
-      'FOREIGN KEY (' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + ') ' +                    -- Column name on which the foreign key is placed
-      'REFERENCES ' + OBJECT_NAME (fk_columns.referenced_object_id) +                                                   -- Referenced table name
-      ' (' + COL_NAME (fk_columns.referenced_object_id, fk_columns.referenced_column_id) + ')'');' as SQL               -- column name in referenced table
+    'INSERT INTO DeclarativeConstraint (constraintName, tableName, referencedTableName, constraintType) VALUES (' +
+    '''' + OBJECT_NAME (fk.object_id) + ''', ' +
+    '''' + OBJECT_NAME (fk.parent_object_id) + ''', ' +
+    '''' + OBJECT_NAME (fk_columns.referenced_object_id) + ''', ' +
+    '''FOREIGN KEY'');'
 FROM
     sys.foreign_keys fk INNER JOIN sys.foreign_key_columns fk_columns
     ON fk.OBJECT_ID = fk_columns.constraint_object_id
     INNER JOIN sys.tables tables
     ON fk_columns.referenced_object_id = tables.object_id
-WHERE
-    OBJECT_NAME (fk.object_id) = 'FK_SUPPLY_SUPPLY_IN_PURCHASE'
+
+SELECT
+    'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenced) VALUES (' +
+    '''' + OBJECT_NAME (fk.object_id) + ''', ' +
+    '''' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + ''', ' +
+    CAST(1 as VARCHAR) + '); '
+FROM
+    sys.foreign_keys fk INNER JOIN sys.foreign_key_columns fk_columns
+    ON fk.OBJECT_ID = fk_columns.constraint_object_id
+    INNER JOIN sys.tables tables
+    ON fk_columns.referenced_object_id = tables.object_id
+ORDER BY OBJECT_NAME(fk.object_id)
+
+SELECT
+    'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenced) VALUES (' +
+    '''' + OBJECT_NAME (fk.object_id) + ''', ' +
+    '''' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + ''', ' +
+    CAST(0 as VARCHAR) + '); '
+FROM
+    sys.foreign_keys fk INNER JOIN sys.foreign_key_columns fk_columns
+    ON fk.OBJECT_ID = fk_columns.constraint_object_id
+    INNER JOIN sys.tables tables
+    ON fk_columns.referenced_object_id = tables.object_id
+ORDER BY OBJECT_NAME(fk.object_id)
 
 --
 -- Primary keys
 --
 SELECT
-    'INSERT INTO DeclarativeConstraint (tableName, columnName, constraintName, constraintType, constraintLogic) VALUES (' +
-    '''' + tc.TABLE_NAME + ''', ' +
-    '''' + COLUMN_NAME + ''', ' +
+    'INSERT INTO DeclarativeConstraint (constraintName, tableName, constraintType) VALUES (' +
     '''' + tc.CONSTRAINT_NAME + ''', ' +
-    '''PRIMARY KEY'', ' +
-    '''ALTER TABLE ' + tc.TABLE_NAME + ' ADD CONSTRAINT ' + tc.CONSTRAINT_NAME + ' PRIMARY KEY (' + COLUMN_NAME +''');' as SQL
+    '''' + tc.TABLE_NAME + ''', ' +
+    '''FOREIGN KEY '');'
+FROM
+    INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+WHERE
+    tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
+ORDER BY
+    tc.TABLE_NAME
+
+SELECT
+    'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName) VALUE (' +
+    '''' + tc.CONSTRAINT_NAME + ''', ' +
+    '''' + ccu.COLUMN_NAME + ''');'
 FROM
     INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
     INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu

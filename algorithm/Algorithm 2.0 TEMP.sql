@@ -217,5 +217,6 @@ INSERT INTO @PREFERENCES (moduleName) VALUES	('Stock'),
 												('Purchase'),
 												('Employee'),
 												('Sales')
+
 EXEC GenerateDDL @PREFERENCES, @OUTPUT OUTPUT
 PRINT @OUTPUT

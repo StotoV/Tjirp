@@ -1,4 +1,3 @@
-USE master;GO DROP DATABASE test;GO CREATE DATABASE test;GO USE test;GO
 --
 -- Test data
 --
@@ -88,6 +87,19 @@ BEGIN
         -- attribute
         IF COL_LENGTH('[dbo].Article', 'amount') IS NOT NULL
         BEGIN
+
+            -- Check if the amount isn't going to be less than 0
+            IF EXISTS (
+                SELECT 1
+                FROM Article a INNER JOIN inserted i
+                ON a.articleNo = i.Article_articleNo
+                WHERE a.amount - i.amount < 0
+            )
+            BEGIN
+                ;THROW 50000, 'The amount is going to be less than 0', 1
+            END
+
+            -- Update the amount
             UPDATE
                 Article
             SET
@@ -100,6 +112,21 @@ BEGIN
         -- Update ArticleInStorageCube if it exists
         IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'ArticleInStorageCube')
         BEGIN
+
+            -- Check if the amount isn't going to be less than 0
+            IF EXISTS (
+                SELECT 1
+                FROM ArticleInStorageCube aisc INNER JOIN inserted i
+                ON aisc.Article_articleNo = i.Article_articleNo
+                    AND aisc.StorageCube_Location_address = i.ArticleInStorageCube_StorageCube_Location_address
+                    AND aisc.StorageCube_referenceNo = i.ArticleInStorageCube_StorageCube_referenceNo
+                WHERE aisc.amount - i.amount < 0
+            )
+            BEGIN
+                ;THROW 50000, 'The amount is going to be less than 0', 1
+            END
+
+            -- Update the amount
             UPDATE
                 ArticleInStorageCube
             SET
@@ -113,7 +140,21 @@ BEGIN
 
         -- Update ArticleInLocation if it exists
         IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'ArticleInLocation')
-        BEGIN -- (Article_ArticleNo, Location_address)
+        BEGIN
+
+            -- Check if the amount isn't going to be less than 0
+            IF EXISTS (
+                SELECT 1
+                FROM ArticleInLocation ail INNER JOIN inserted i
+                ON ail.Article_articleNo = i.Article_articleNo
+                    AND ail.Location_address = i.ArticleInLocation_Location_address
+                WHERE ail.amount - i.amount < 0
+            )
+            BEGIN
+                ;THROW 50000, 'The amount is going to be less than 0', 1
+            END
+
+            -- Update the amount
             UPDATE
                 ArticleInLocation
             SET
@@ -127,6 +168,19 @@ BEGIN
         -- Update Supply if it exists
         IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Supply')
         BEGIN
+
+            -- Check if the amount isn't going to be less than 0
+            IF EXISTS (
+                SELECT 1
+                FROM Supply s INNER JOIN inserted i
+                ON s.supplyNo = i.Supply_supplyNo
+                WHERE s.amount - i.amount < 0
+            )
+            BEGIN
+                ;THROW 50000, 'The amount is going to be less than 0', 1
+            END
+
+            -- Update the amount
             UPDATE
                 Supply
             SET
@@ -175,4 +229,16 @@ BEGIN TRAN
         PRINT 'Test BR05 - TR08 - 04 Succeeded'
     ELSE
         PRINT 'Test BR05 - TR08 - 04 Failed'
+
+    -- Set amount to 0
+    BEGIN TRY
+        INSERT INTO SalesOrderLine (SalesOrder_orderNo, SalesOrder_referenceNo, "lineNo", Supply_supplyNo, Article_articleNo, ArticleInStorageCube_StorageCube_Location_address,
+                                ArticleInStorageCube_StorageCube_referenceNo, ArticleInLocation_Location_address, amount)
+        VALUES (4, 'referentie', 1, 1, 1, 'addr', 1, 'addr', 3);
+
+        PRINT 'Test BR05 - TR08 - 05 Failed'
+    END TRY
+    BEGIN CATCH
+        PRINT 'Test BR05 - TR08 - 05 Succeeded'
+    END CATCH
 ROLLBACK TRAN
