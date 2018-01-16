@@ -2,11 +2,67 @@
 USE test;
 
 --
+-- Module per table
+--
+-- Set the default module name
+DECLARE @defaultModule VARCHAR(MAX) = 'Module'
+
+-- Create virtual table for all the modules
+DECLARE @TableModule TABLE (
+    tableName VARCHAR(128) NOT NULL,
+    moduleName VARCHAR(250) NOT NULL
+);
+INSERT INTO @TableModule (tableName, moduleName) VALUES
+    ('Article', ''),
+    ('Article_in_Unit', ''),
+    ('ArticleDiscount', ''),
+    ('ArticleInLocation', ''),
+    ('ArticleInStorageCube', ''),
+    ('Component', ''),
+    ('Customer', 'Sales'),
+    ('CustomerDiscount', ''),
+    ('Employee', ''),
+    ('Location', ''),
+    ('Product', ''),
+    ('PurchaseInvoice', 'Purchase'),
+    ('PurchaseInvoiceLine', 'Purchase'),
+    ('PurchaseOrder', 'Purchase'),
+    ('PurchaseOrderLine', 'Purchase'),
+    ('PurchasePayment', 'Purchase'),
+    ('PurchaseQuote', 'Purchase'),
+    ('PurchaseQuoteLine', 'Purchase'),
+    ('SalesInvoice', 'Sales'),
+    ('SalesInvoiceLine', 'Sales'),
+    ('SalesOrder', 'Sales'),
+    ('SalesOrderDiscount', 'Sales'),
+    ('SalesOrderLine', 'Sales'),
+    ('SalesPayment', 'Sales'),
+    ('SalesQuote', 'Sales'),
+    ('SalesQuoteLine', 'Sales'),
+    ('ShelfLife', ''),
+    ('StorageCube', ''),
+    ('StorageMethod', ''),
+    ('Supplier', 'Purchase'),
+    ('Supply', ''),
+    ('SupplyDiscount', ''),
+    ('Unit', ''),
+    ('VatType', '');
+
+--
 -- Tables
 --
 SELECT
     'INSERT INTO "table" (name, moduleName) VALUES ' +
-    '(''' + TABLE_NAME + ''', ''module'');' as SQL
+    '(''' + TABLE_NAME + ''', ''' + (
+        SELECT
+            CASE
+                WHEN moduleName IS NOT NULL AND moduleName <> ''
+                    THEN moduleName
+                ELSE
+                    '' + @defaultModule + ''
+            END
+        FROM @TableModule WHERE tableName = TABLE_NAME
+    ) + ''');' as SQL
 
 FROM
     INFORMATION_SCHEMA.TABLES
@@ -17,8 +73,8 @@ ORDER BY
 -- Columns
 --
 SELECT
-    'INSERT INTO TableColumn (tableName, columnName, moduleName, columnType, mandatory) VALUES ' +
-    '(''' + TABLE_NAME + ''', ''' + COLUMN_NAME + ''', ''module'', ''' + DATA_TYPE +
+    'INSERT INTO TableColumn (tableName, columnName, columnType, mandatory) VALUES ' +
+    '(''' + TABLE_NAME + ''', ''' + COLUMN_NAME + ''', ''' + DATA_TYPE +
 
     -- Datatypes which specify a length
     CASE
@@ -63,6 +119,8 @@ FROM
     ON fk.OBJECT_ID = fk_columns.constraint_object_id
     INNER JOIN sys.tables tables
     ON fk_columns.referenced_object_id = tables.object_id
+WHERE
+    OBJECT_NAME (fk.object_id) = 'FK_SUPPLY_SUPPLY_IN_PURCHASE'
 
 --
 -- Primary keys
