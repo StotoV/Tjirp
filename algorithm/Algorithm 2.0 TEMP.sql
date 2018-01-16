@@ -17,7 +17,7 @@ CREATE TABLE Module (
 	name					VARCHAR(255)	NOT NULL,
 	mandatory				BIT				NOT NULL,
 	superModule				VARCHAR(255)    NULL,
-	CONSTRAINT PK_Modules PRIMARY KEY (name),
+	CONSTRAINT PK_Module PRIMARY KEY (name),
 	CONSTRAINT FK_Module_Super FOREIGN KEY (superModule) REFERENCES Module (name)
 
 );
@@ -25,9 +25,14 @@ CREATE TABLE Module (
 CREATE TABLE "Table" (
 	name					VARCHAR(128)	NOT NULL,
 	moduleName				VARCHAR(255)	NOT NULL,
-	CONSTRAINT PK_Tables PRIMARY KEY (name),
-	CONSTRAINT FK_Tables_Modules FOREIGN KEY (moduleName) REFERENCES Module (name)
+	CONSTRAINT PK_Table PRIMARY KEY (name),
+	CONSTRAINT FK_Table_Module FOREIGN KEY (moduleName) REFERENCES Module (name)
 );
+
+CREATE TABLE "Column" (
+	name					VARCHAR(128)	NOT NULL,
+	CONSTRAINT PK_Column PRIMARY KEY(name)
+)
 
 CREATE TABLE TableColumn (
 	tableName				VARCHAR(128)	NOT NULL,
@@ -39,6 +44,7 @@ CREATE TABLE TableColumn (
 	CONSTRAINT PK_TableColumn PRIMARY KEY (tableName, columnName),
 	CONSTRAINT AK_TableColumn UNIQUE (tableName, columnSequenceNumber),
 	CONSTRAINT FK_TableColumn_Table FOREIGN KEY (tableName) REFERENCES "Table"(name),
+	CONSTRAINT FK_TableColumn_Column FOREIGN KEY (columnName) REFERENCES "Column"(name),
 	CONSTRAINT FK_TableColumn_Module FOREIGN KEY (moduleName) REFERENCES Module(name)
 );
 
@@ -70,7 +76,8 @@ CREATE TABLE DeclarativeConstraintColumns (
 	columnName					VARCHAR(128)	NOT NULL,
 	isReferenced				BIT	DEFAULT 0	NOT NULL,
 	CONSTRAINT PK_DeclarativeConstraintColumns PRIMARY KEY (constraintName, columnName, isReferenced),
-	CONSTRAINT FK_DeclarativeConstraint FOREIGN KEY (constraintName) REFERENCES DeclarativeConstraint (constraintName),
+	CONSTRAINT FK_DeclarativeConstraintColumns_Column FOREIGN KEY (columnName) REFERENCES "Column"(name),
+	CONSTRAINT FK_DeclarativeConstraintColumns_DeclarativeConstraint FOREIGN KEY (constraintName) REFERENCES DeclarativeConstraint (constraintName),
 );
 GO
 
@@ -89,6 +96,12 @@ INSERT INTO "Table" (name, moduleName) VALUES																								('Article',
 																																			('SalesOrder', 'Sales'),
 																																			('Employee', 'Employee'),
 																																			('PurchaseOrder', 'Purchase')
+
+INSERT INTO "Column" (name) VALUES 
+('productId'), 
+('productIdBackup'),
+('productIdBackup2'),
+('productIdBackupOtherModule')
 
 INSERT INTO TableColumn (tableName, columnName, columnSequenceNumber, moduleName, columnType, mandatory) VALUES								('Article', 'productId', 1, 'Stock', 'INT', 1),
 																																			('Article', 'productIdBackup', 2, 'Stock', 'INT', 1),
