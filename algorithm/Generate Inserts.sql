@@ -139,6 +139,7 @@ FROM
     ON fk_columns.referenced_object_id = tables.object_id
 -- De WHERE clause moet weg in productie!! Is alleen om te testen of er niet meerdere record
 -- getoond worden
+-- ALS HET IS GELUKT OM ENKELE RECORDS TE KRIJGEN HETZELFDE TOEPASSEN BIJ DE PK!
 WHERE
     OBJECT_NAME (fk.object_id) = 'FK_SUPPLY_SUPPLY_IN_PURCHASE'
 
@@ -152,7 +153,18 @@ SELECT
     '''' + COLUMN_NAME + ''', ' +
     '''' + tc.CONSTRAINT_NAME + ''', ' +
     '''PRIMARY KEY'', ' +
-    '''ALTER TABLE ' + tc.TABLE_NAME + ' ADD CONSTRAINT ' + tc.CONSTRAINT_NAME + ' PRIMARY KEY (' + COLUMN_NAME +''');' as SQL
+    '''ALTER TABLE ' + tc.TABLE_NAME + ' ADD CONSTRAINT ' + tc.CONSTRAINT_NAME +
+    ' PRIMARY KEY (' + STUFF((
+                        SELECT DISTINCT
+                            ', ' + ccu_stuff.COLUMN_NAME
+                        FROM
+                            INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc_stuff
+                            INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu_stuff
+                            ON tc_stuff.CONSTRAINT_NAME = ccu_stuff.Constraint_name
+                        WHERE
+                            tc_stuff.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+                        FOR
+                            XML PATH('')), 1, 2, '') + ');' as SQL
 FROM
     INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
     INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu
