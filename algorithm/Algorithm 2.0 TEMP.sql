@@ -33,7 +33,7 @@ CREATE TABLE TableColumn (
 	tableName				VARCHAR(128)	NOT NULL,
 	columnName				VARCHAR(128)	NOT NULL,
 	columnSequenceNumber	INT				NOT NULL,
-	moduleName				VARCHAR(255)	NOT NULL,
+	moduleName				VARCHAR(255)	NULL,
 	columnType				VARCHAR(128)	NOT NULL,
 	mandatory				BIT				NOT NULL,
 	CONSTRAINT PK_TableColumn PRIMARY KEY (tableName, columnName),
@@ -91,7 +91,7 @@ INSERT INTO "Table" (name, moduleName) VALUES																								('Article',
 INSERT INTO TableColumn (tableName, columnName, columnSequenceNumber, moduleName, columnType, mandatory) VALUES								('Article', 'productId', 1, 'Stock', 'INT', 1),
 																																			('Article', 'productIdBackup', 2, 'Stock', 'INT', 1),
 																																			('Article', 'productIdBackup2', 3, 'Stock', 'INT', 1),
-																																			('Article', 'productIdBackupOtherModule', 4, 'Purchase', 'INT', 1)
+																																			('Article', 'productIdBackupOtherModule', 4, NULL, 'INT', 1)
 
 INSERT INTO ProceduralConstraint (constraintName, moduleName, constraintType, tableName, constraintLogic, constraintMetaData) VALUES		('ProcConstraint1', 'Employee', 'TRIGGER', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', 'AFTER UPDATE'),
 																																			('ProcConstraint2', 'Stock', 'PROC', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', '@VAR1 INT')
@@ -132,7 +132,7 @@ AS BEGIN
 				SELECT @TABLESQL = (@TABLESQL + CHAR(13)+CHAR(10) + columnName + ' ' + columnType + ' ' + CASE WHEN mandatory = 1 THEN 'NOT NULL' ELSE 'NULL' END + ',')
 					FROM TableColumn
 					WHERE tableName = @TABLENAME
-					AND moduleName IN (SELECT moduleName FROM @PREFERENCES)
+					AND moduleName IN (SELECT moduleName FROM @PREFERENCES) OR moduleName IS NULL
 				-- Constraints
 				DECLARE @CONSTRAINTCOLUMNS VARCHAR(MAX) = ','
 				SELECT @CONSTRAINTCOLUMNS = (@CONSTRAINTCOLUMNS + ', ' + DC.columnName) FROM DeclarativeConstraintColumns DC JOIN DeclarativeConstraint D ON D.constraintName = DC.constraintName
