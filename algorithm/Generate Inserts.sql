@@ -104,23 +104,44 @@ ORDER BY
 --
 -- Foreign keys
 --
-SELECT
+SELECT fk.object_id,
     'INSERT INTO DeclarativeConstraint (tableName, columnName, constraintName, constraintType, constraintLogic) VALUES (' +
       '''' + OBJECT_NAME (fk.parent_object_id) + ''',' +                                                                -- Table name
       '''' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + ''',' +                              -- Column name
       '''' + OBJECT_NAME (fk.object_id) + ''',' +                                                                       -- Constraint name
       '''FOREIGN KEY'', ' +
       '''ALTER TABLE ' + OBJECT_NAME (fk.parent_object_id) + ' ADD CONSTRAINT ' + OBJECT_NAME (fk.object_id) + ' ' +    -- Table name + constraint name
-      'FOREIGN KEY (' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + ') ' +                    -- Column name on which the foreign key is placed
+      'FOREIGN KEY (' + STUFF ((                                                                                        -- Column names on which the foreign key is placed
+                            SELECT DISTINCT
+                                ', ' + COL_NAME (fk_columns_stuff.parent_object_id, fk_columns_stuff.parent_column_id)
+                            FROM
+                                sys.foreign_keys fk_stuff INNER JOIN sys.foreign_key_columns fk_columns_stuff
+                                ON fk_stuff.OBJECT_ID = fk_columns_stuff.constraint_object_id
+                            WHERE
+                                fk_stuff.object_id = fk.object_id
+                            FOR
+                                XML PATH('')), 1, 2, '') + ') ' +
       'REFERENCES ' + OBJECT_NAME (fk_columns.referenced_object_id) +                                                   -- Referenced table name
-      ' (' + COL_NAME (fk_columns.referenced_object_id, fk_columns.referenced_column_id) + ')'');' as SQL               -- column name in referenced table
+      ' (' + STUFF ((                                                                                        -- Column names on which the foreign key is placed
+                SELECT DISTINCT
+                    ', ' + COL_NAME (fk_columns_stuff.referenced_object_id, fk_columns_stuff.referenced_column_id)
+                FROM
+                    sys.foreign_keys fk_stuff INNER JOIN sys.foreign_key_columns fk_columns_stuff
+                    ON fk_stuff.OBJECT_ID = fk_columns_stuff.constraint_object_id
+                WHERE
+                    fk_stuff.object_id = fk.object_id
+                FOR
+                    XML PATH('')), 1, 2, '') + ')'');' as SQL               -- column name in referenced table
 FROM
     sys.foreign_keys fk INNER JOIN sys.foreign_key_columns fk_columns
     ON fk.OBJECT_ID = fk_columns.constraint_object_id
     INNER JOIN sys.tables tables
     ON fk_columns.referenced_object_id = tables.object_id
+-- De WHERE clause moet weg in productie!! Is alleen om te testen of er niet meerdere record
+-- getoond worden
 WHERE
     OBJECT_NAME (fk.object_id) = 'FK_SUPPLY_SUPPLY_IN_PURCHASE'
+
 
 --
 -- Primary keys
