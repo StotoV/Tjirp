@@ -457,7 +457,7 @@ BEGIN TRAN
     -- Old amount in every table was 3
     INSERT INTO SalesOrderLine (SalesOrder_orderNo, SalesOrder_referenceNo, "lineNo", Supply_supplyNo, Article_articleNo, ArticleInStorageCube_StorageCube_Location_address,
                                 ArticleInStorageCube_StorageCube_referenceNo, ArticleInLocation_Location_address, amount,Unit_name)
-	VALUES (1, 1, 6, 1, 1, 'addr', 1, 'addr', 2,null);
+	VALUES (1, 1, 2, 1, 1, 'addr', 1, 'addr', 2,null);
 
     -- Reduce amount from Article
     IF (SELECT amount FROM Article WHERE articleNo = 1) = 1
@@ -482,6 +482,17 @@ BEGIN TRAN
         PRINT 'Test BR05 - TR08 - 04 Succeeded'
     ELSE
         PRINT 'Test BR05 - TR08 - 04 Failed'
+
+	-- Check doesnt allow subtraction from amount with 0
+	BEGIN TRY
+		INSERT INTO SalesOrderLine (SalesOrder_orderNo, SalesOrder_referenceNo, "lineNo", Supply_supplyNo, Article_articleNo, ArticleInStorageCube_StorageCube_Location_address,
+                                ArticleInStorageCube_StorageCube_referenceNo, ArticleInLocation_Location_address, amount,Unit_name)
+		VALUES (1, 1, 2, 1, 1, 'addr', 1, 'addr', 2,null);
+		PRINT 'Test BR05 - TR08 - 05 Succeeded'
+	END TRY
+	BEGIN CATCH
+		PRINT 'Test BR05 - TR08 - 05 Failed'
+	END CATCH
 	
 ROLLBACK TRAN
 
@@ -525,6 +536,18 @@ BEGIN TRAN
         PRINT 'Test BR05 - TR09 - 04 Succeeded'
     ELSE
         PRINT 'Test BR05 - TR09 - 04 Failed'
+
+	-- Check doesnt allow subtraction from amount with 0
+	BEGIN TRY
+		INSERT INTO PurchaseOrderLine (PurchaseOrder_orderNo, PurchaseOrder_referenceNo, "lineNo", Supply_supplyNo, Article_articleNo, ArticleInStorageCube_StorageCube_Location_address,
+                                ArticleInStorageCube_StorageCube_referenceNo, ArticleInLocation_Location_address, amount,Unit_name)
+		VALUES (1, 8, 2, 1, 1, 'addr', 1, 'addr', 2,null);
+		PRINT 'Test BR05 - TR08 - 05 Succeeded'
+	END TRY
+	BEGIN CATCH
+		PRINT 'Test BR05 - TR08 - 05 Failed'
+	END CATCH
+
 ROLLBACK TRAN
 
 
