@@ -73,6 +73,7 @@ ORDER BY
 -- Columns
 --
 SELECT
+    'INSERT INTO "Column" (name) VALUES (''' + COLUMN_NAME + '''); ' +
     'INSERT INTO TableColumn (tableName, columnName, columnType, mandatory) VALUES ' +
     '(''' + TABLE_NAME + ''', ''' + COLUMN_NAME + ''', ''' + DATA_TYPE +
 
