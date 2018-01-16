@@ -26,6 +26,11 @@ CREATE TABLE "Table" (
 	CONSTRAINT FK_Tables_Modules FOREIGN KEY (moduleName) REFERENCES Module (name)
 );
 
+CREATE TABLE "Column" (
+	name					VARCHAR(128)	NOT NULL,
+	CONSTRAINT PK_Column PRIMARY KEY(name)
+);
+
 CREATE TABLE TableColumn (
 	tableName				VARCHAR(128)	NOT NULL,
 	columnName				VARCHAR(128)	NOT NULL,
@@ -34,6 +39,7 @@ CREATE TABLE TableColumn (
 	mandatory				BIT				NOT NULL,
 	CONSTRAINT PK_TableColumn PRIMARY KEY (tableName, columnName),
 	CONSTRAINT FK_TableColumn_Table FOREIGN KEY (tableName) REFERENCES "Table"(name),
+	CONSTRAINT FK_TableColumn_Column FOREIGN KEY (columnName) REFERENCES "Column"(name),
 	CONSTRAINT FK_TableColumn_Module FOREIGN KEY (moduleName) REFERENCES Module(name)
 );
 
@@ -65,6 +71,7 @@ CREATE TABLE DeclarativeConstraintColumns (
 	columnName					VARCHAR(128)	NOT NULL,
 	isReferenced				BIT	DEFAULT 0	NOT NULL,
 	CONSTRAINT PK_DeclarativeConstraintColumns PRIMARY KEY (constraintName, columnName, isReferenced),
+	CONSTRAINT FK_DeclarativeConstraintColumns_Column FOREIGN KEY (columnName) REFERENCES "Column"(name),
 	CONSTRAINT FK_DeclarativeConstraint FOREIGN KEY (constraintName) REFERENCES DeclarativeConstraint (constraintName),
 );
 GO
@@ -85,6 +92,11 @@ INSERT INTO "Table" (name, moduleName) VALUES																								('Article',
 																																			('Employee', 'Employee'),
 																																			('PurchaseOrder', 'Purchase')
 
+INSERT INTO "Column" (name) VALUES																											('productId'), 
+																																			('productIdBackup'),
+																																			('productIdBackup2'),
+																																			('productIdBackupOtherModule')
+
 INSERT INTO TableColumn (tableName, columnName, moduleName, columnType, mandatory) VALUES													('Article', 'productId', 'Stock', 'INT', 1),
 																																			('Article', 'productIdBackup', 'Stock', 'INT', 1),
 																																			('Article', 'productIdBackup2', 'Stock', 'INT', 1),
@@ -102,6 +114,7 @@ INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenc
 																																			('AK_TEST2', 'productIdBackup2', 0),
 																																			('FK_TEST3', 'productIdBackupOtherModule', 0),
 																																			('FK_TEST3', 'productIdBackupOtherModule', 1)
+
 GO
 
 CREATE PROC GenerateDDL
