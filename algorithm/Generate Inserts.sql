@@ -145,23 +145,21 @@ ORDER BY OBJECT_NAME(fk.object_id)
 -- Primary keys
 --
 SELECT
-    'INSERT INTO DeclarativeConstraint (tableName, columnName, constraintName, constraintType, constraintLogic) VALUES (' +
-    '''' + tc.TABLE_NAME + ''', ' +
-    '''' + COLUMN_NAME + ''', ' +
+    'INSERT INTO DeclarativeConstraint (constraintName, tableName, constraintType) VALUES (' +
     '''' + tc.CONSTRAINT_NAME + ''', ' +
-    '''PRIMARY KEY'', ' +
-    '''ALTER TABLE ' + tc.TABLE_NAME + ' ADD CONSTRAINT ' + tc.CONSTRAINT_NAME +
-    ' PRIMARY KEY (' + STUFF((
-                        SELECT DISTINCT
-                            ', ' + ccu_stuff.COLUMN_NAME
-                        FROM
-                            INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc_stuff
-                            INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu_stuff
-                            ON tc_stuff.CONSTRAINT_NAME = ccu_stuff.Constraint_name
-                        WHERE
-                            tc_stuff.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
-                        FOR
-                            XML PATH('')), 1, 2, '') + ');' as SQL
+    '''' + tc.TABLE_NAME + ''', ' +
+    '''FOREIGN KEY '');'
+FROM
+    INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+WHERE
+    tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
+ORDER BY
+    tc.TABLE_NAME
+
+SELECT
+    'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName) VALUE (' +
+    '''' + tc.CONSTRAINT_NAME + ''', ' +
+    '''' + ccu.COLUMN_NAME + ''');'
 FROM
     INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
     INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu
