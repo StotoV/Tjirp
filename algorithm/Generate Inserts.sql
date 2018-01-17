@@ -5,7 +5,7 @@ USE test;
 -- Module per table
 --
 -- Set the default module name
-DECLARE @defaultModule VARCHAR(MAX) = 'Module'
+DECLARE @defaultModule VARCHAR(MAX) = 'Stock'
 
 --
 -- Module
@@ -16,8 +16,7 @@ DECLARE @Module TABLE (
 )
 INSERT INTO @Module (moduleName, mandatory)
     VALUES
-      (@defaultModule, 0),
-      ('Stock', 1),
+      (@defaultModule, 1),
       ('Sales', 0),
       ('Purchase', 0),
       ('StockLocation', 0),

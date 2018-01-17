@@ -3,7 +3,6 @@ GO
 
 SET NOCOUNT ON
 
-INSERT INTO Module ("name", mandatory) VALUES ('Module', 0);
 INSERT INTO Module ("name", mandatory) VALUES ('Purchase', 0);
 INSERT INTO Module ("name", mandatory) VALUES ('Sales', 0);
 INSERT INTO Module ("name", mandatory) VALUES ('Stock', 1);
