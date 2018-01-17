@@ -153,7 +153,7 @@ GROUP BY
 SELECT
     'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenced) VALUES (' +
     '''' + OBJECT_NAME (fk.object_id) + ''', ' +
-    '''"' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + '"'', ' +
+    '''"' + COL_NAME (fk_columns.referenced_object_id, fk_columns.referenced_column_id) + '"'', ' +
     CAST(0 as VARCHAR) + '); '
 FROM
     sys.foreign_keys fk INNER JOIN sys.foreign_key_columns fk_columns
