@@ -928,7 +928,10 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
             SET NOCOUNT ON
 
             BEGIN TRY
-
+            Declare @amount INT
+            Declare @superOrderNo INT
+            Declare @superRef INT
+            Declare @ArticleNo INT
             Select @superOrderNo = Po.superOderNo, @superRef = Po.superOderReferenceNo, @amount = Pl.Amount ,@ArticleNo = Pl.Article_articleNo
             From PurchaseOrder Po inner join inserted i on Po.orderNo = i.PurchaseOrder_orderNo AND Po.referenceNo = i.PurchaseOrder_referenceNo inner join PurchaseOrderLine Pl
                  on Po.superOderNo = Pl.PurchaseOrder_orderNo AND Po.superOderReferenceNo = Pl.PurchaseOrder_referenceNo
