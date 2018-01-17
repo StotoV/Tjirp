@@ -78,48 +78,11 @@ GO
 
 CREATE TYPE PreferenceTable AS TABLE (
 	moduleName VARCHAR(255) PRIMARY KEY
-);
-GO
-
-INSERT INTO Module (name, mandatory) VALUES																									('Sales', 0),
-																																			('Purchase', 0),
-																																			('Stock', 1),
-																																			('Employee', 0)
-
-INSERT INTO "Table" (name, moduleName) VALUES																								('Article', 'Stock'),
-																																			('Component', 'Stock'),
-																																			('SalesOrder', 'Sales'),
-																																			('Employee', 'Employee'),
-																																			('PurchaseOrder', 'Purchase')
-
-INSERT INTO "Column" (name) VALUES																											('productId'), 
-																																			('productIdBackup'),
-																																			('productIdBackup2'),
-																																			('productIdBackupOtherModule')
-
-INSERT INTO TableColumn (tableName, columnName, moduleName, columnType, mandatory) VALUES													('Article', 'productId', 'Stock', 'INT', 1),
-																																			('Article', 'productIdBackup', 'Stock', 'INT', 1),
-																																			('Article', 'productIdBackup2', 'Stock', 'INT', 1),
-																																			('Article', 'productIdBackupOtherModule', NULL, 'INT', 1),
-																																			('Component', 'productIdBackupOtherModule', NULL, 'INT', 1)
-
-INSERT INTO ProceduralConstraint (constraintName, moduleName, constraintType, tableName, constraintLogic, constraintMetaData) VALUES		('ProcConstraint1', 'Employee', 'TRIGGER', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', 'AFTER UPDATE'),
-																																			('ProcConstraint2', 'Stock', 'PROC', 'Article', 'BEGIN TRY PRINT'''' END TRY BEGIN CATCH ;THROW END CATCH', '@VAR1 INT')
-
-INSERT INTO DeclarativeConstraint (constraintName, tableName, referencedTableName, constraintType, constraintLogic) VALUES					('CK_TEST1', 'Article', NULL, 'CHECK', '1 = 1'),
-																																			('AK_TEST2', 'Article', NULL, 'UNIQUE', NULL),
-																																			('FK_TEST3', 'Article', 'Component', 'FOREIGN KEY', NULL)
-
-INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenced) VALUES													('AK_TEST2', 'productIdBackup', 0),
-																																			('AK_TEST2', 'productIdBackup2', 0),
-																																			('FK_TEST3', 'productIdBackupOtherModule', 0),
-																																			('FK_TEST3', 'productIdBackupOtherModule', 1)
-
-GO
+); 
+GO 
 
 CREATE PROC GenerateDDL
-	@PREFERENCEDMODULES PreferenceTable READONLY,
-	@SQLOUTPUT VARCHAR(MAX) OUTPUT
+	@PREFERENCEDMODULES PreferenceTable READONLY
 AS BEGIN
 	SET NOCOUNT ON
 
@@ -213,8 +176,13 @@ AS BEGIN
 				FETCH NEXT FROM CUR_PROCEDURALCONSTRAINT INTO @PROCEDURALCONSTRAINTNAME 
 			END
 
-			--PRINT @SQL
-			SET @SQLOUTPUT = @SQL
+			-- Loop through the variable because SQL can print only 8000 characters at a time
+			DECLARE @COUNT INT = 0
+			WHILE @COUNT < (SELECT DATALENGTH(@SQL))
+				BEGIN
+					PRINT SUBSTRING(@SQL, @COUNT, @COUNT + 8000)
+					SET @COUNT += 8000
+				END
 
 		CLOSE CUR_PROCEDURALCONSTRAINT DEALLOCATE CUR_PROCEDURALCONSTRAINT
 	END TRY
@@ -224,12 +192,10 @@ AS BEGIN
 END
 GO
 
-DECLARE @PREFERENCES AS PreferenceTable,
-		@OUTPUT VARCHAR(MAX)
+DECLARE @PREFERENCES AS PreferenceTable
 INSERT INTO @PREFERENCES (moduleName) VALUES	('Stock'),
 												('Purchase'),
 												('Employee'),
 												('Sales')
 
-EXEC GenerateDDL @PREFERENCES, @OUTPUT OUTPUT
-PRINT @OUTPUT
+EXEC GenerateDDL @PREFERENCES
