@@ -1,4 +1,4 @@
-USE master;GO DROP DATABASE test;GO CREATE DATABASE test;GO USE test;GO
+USE master;GO DROP DATABASE IF EXISTS tr09;GO CREATE DATABASE tr09;GO USE tr09;GO
 --
 -- Test data
 --
@@ -45,7 +45,6 @@ CREATE TABLE PurchaseOrderLine (
     PurchaseOrder_orderNo INT,
     PurchaseOrder_referenceNo VARCHAR(30),
     "lineNo" INT, -- lineNo is a reserved keyword
-    Supply_supplyNo INT,
     Article_articleNo INT,
     ArticleInStorageCube_StorageCube_Location_address VARCHAR(150),
     ArticleInStorageCube_StorageCube_referenceNo INT,
@@ -53,18 +52,26 @@ CREATE TABLE PurchaseOrderLine (
     amount INT,
 
     CONSTRAINT PK_PurchaseOrderLine PRIMARY KEY (PurchaseOrder_OrderNo, PurchaseOrder_referenceNo, "lineNo"),
-    CONSTRAINT FK_PurchaseOrderLine_Supply FOREIGN KEY (Supply_supplyNo) REFERENCES Supply (supplyNo),
     CONSTRAINT FK_PurchaseOrderLine_Article FOREIGN KEY (Article_articleNo) REFERENCES Article (articleNo),
     CONSTRAINT FK_PurchaseOrderLine_ArticleInStorageCube FOREIGN KEY (Article_articleNo, ArticleInStorageCube_StorageCube_Location_address, ArticleInStorageCube_StorageCube_referenceNo)
         REFERENCES ArticleInStorageCube (Article_articleNo, StorageCube_Location_address, StorageCube_referenceNo),
     CONSTRAINT FK_SalesOrderLine_ArticleInLocation FOREIGN KEY (Article_articleNo, ArticleInLocation_Location_address) REFERENCES ArticleInLocation (Article_articleNo, Location_address)
 );
 
+ALTER TABLE Supply
+    ADD PurchaseOrderLine_PurchaseOrder_OrderNo INT NULL,
+    PurchaseOrderLine_PurchaseOrder_referenceNo VARCHAR(30) NULL,
+    PurchaseOrderLine_lineNo INT NULL;
+
+ALTER TABLE Supply
+    ADD CONSTRAINT PK_Supply_PurchaseOrderLine FOREIGN KEY (PurchaseOrderLine_PurchaseOrder_OrderNo, PurchaseOrderLine_PurchaseOrder_referenceNo, PurchaseOrderLine_lineNo)
+            REFERENCES PurchaseOrderLine (PurchaseOrder_OrderNo, PurchaseOrder_referenceNo, "lineNo");
+
 INSERT INTO Article VALUES (1, 3), (2, 4), (3, 5);
 INSERT INTO ArticleInStorageCube VALUES (1, 'addr', 1, 3), (2, 'addr', 2, 4), (3, 'addr', 3, 5);
 INSERT INTO ArticleInLocation VALUES (1, 'addr', 3), (2, 'addr', 4), (3, 'addr', 5);
-INSERT INTO Supply VALUES (1, 3), (2, 4), (3, 5);
-INSERT INTO PurchaseOrderLine VALUES (1, 'ref1', 1, 1, 1, 'addr', 1, 'addr', 3), (2, 'ref2', 2, 2, 2, 'addr', 2, 'addr', 4), (3, 'ref3', 3, 3, 3, 'addr', 3, 'addr', 5);
+INSERT INTO PurchaseOrderLine VALUES (1, 'ref1', 1, 1, 'addr', 1, 'addr', 3), (2, 'ref2', 2, 2, 'addr', 2, 'addr', 4), (3, 'ref3', 3, 3, 'addr', 3, 'addr', 5);
+INSERT INTO Supply VALUES (1, 3, 1, 'ref1', 1), (2, 4, 2, 'ref2', 2), (3, 5, 3, 'ref3', 3);
 
 --
 -- In Table SalesOrderLine FOR EACH record reduce amount in table Article
@@ -133,7 +140,9 @@ BEGIN
                 amount -= i.amount
             FROM
                 Supply s INNER JOIN inserted i
-                ON s.supplyNo = i.Supply_supplyNo;
+                ON s.PurchaseOrderLine_PurchaseOrder_OrderNo = i.PurchaseOrder_OrderNo
+                    AND s.PurchaseOrderLine_PurchaseOrder_referenceNo = i.PurchaseOrder_referenceNo
+                    AND s.PurchaseOrderLine_lineNo = i."lineNo";
         END
 
     END TRY
@@ -148,9 +157,9 @@ END
 BEGIN TRAN
     -- Reduce amount by 2
     -- Old amount in every table was 3
-    INSERT INTO PurchaseOrderLine (PurchaseOrder_orderNo, PurchaseOrder_referenceNo, "lineNo", Supply_supplyNo, Article_articleNo, ArticleInStorageCube_StorageCube_Location_address,
+    INSERT INTO PurchaseOrderLine (PurchaseOrder_orderNo, PurchaseOrder_referenceNo, "lineNo", Article_articleNo, ArticleInStorageCube_StorageCube_Location_address,
                                 ArticleInStorageCube_StorageCube_referenceNo, ArticleInLocation_Location_address, amount)
-        VALUES (4, 'referentie', 1, 1, 1, 'addr', 1, 'addr', 2);
+        VALUES (4, 'ref1', 1, 1, 'addr', 1, 'addr', 2);
 
     -- Reduce amount from Article
     IF (SELECT amount FROM Article WHERE articleNo = 1) = 1
@@ -171,6 +180,7 @@ BEGIN TRAN
         PRINT 'Test BR05 - TR08 - 03 Failed'
 
     -- Reduce amount from Supply
+    UPDATE PurchaseOrderLine SET amount = 2 WHERE PurchaseOrder_orderNo = 1 AND PurchaseOrder_referenceNo = 'ref1' AND "lineNo" = 1
     IF (SELECT amount FROM Supply WHERE supplyNo = 1) = 1
         PRINT 'Test BR05 - TR08 - 04 Succeeded'
     ELSE

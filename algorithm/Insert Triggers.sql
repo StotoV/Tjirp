@@ -420,13 +420,15 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
                         amount -= i.amount
                     FROM
                         Supply s INNER JOIN inserted i
-                        ON s.supplyNo = i.Supply_supplyNo;
+                        ON s.PurchaseOrderLine_PurchaseOrder_OrderNo = i.PurchaseOrder_OrderNo
+                            AND s.PurchaseOrderLine_PurchaseOrder_referenceNo = i.PurchaseOrder_referenceNo
+                            AND s.PurchaseOrderLine_lineNo = i."lineNo";
                 END
 
             END TRY
             BEGIN CATCH
                 ;THROW
-        END CATCH',
+            END CATCH',
         'AFTER INSERT, UPDATE');
 
 --
