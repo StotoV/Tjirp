@@ -10,7 +10,7 @@ INSERT INTO DeclarativeConstraint (constraintName, tableName, constraintType, co
 --
 -- TR01
 --
-INSERT INTO ProceduralConstraint (constraintName, tableName, constraintType, moduleName, constraintLogic, constraintMetaData)
+INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, moduleName, constraintLogic, constraintMetaData)
     VALUES ('"Supply"', 'TR01_Supply', 'TRIGGER', 'Stock',
             'IF @@ROWCOUNT = 0
                 RETURN
