@@ -13,7 +13,7 @@ DECLARE @defaultModule VARCHAR(MAX) = 'Module'
 DECLARE @Module TABLE (
     moduleName VARCHAR(250) NOT NULL,
     mandatory BIT DEFAULT 0
-);
+)
 INSERT INTO @Module (moduleName, mandatory)
     VALUES
       (@defaultModule, 0),
@@ -37,15 +37,20 @@ GROUP BY
 --
 DECLARE @TableModule TABLE (
     tableName VARCHAR(128) NOT NULL,
-    moduleName VARCHAR(250) NOT NULL,
-    mandatory BIT DEFAULT 0,
-
-    CONSTRAINT FK_TableModule_Module FOREIGN KEY (moduleName) REFERENCES @Module (moduleName)
-);
+    moduleName VARCHAR(250) NULL,
+    mandatory BIT DEFAULT 0
+)
 INSERT INTO @TableModule (tableName, moduleName) VALUES
+    ('Article', 'Stock'),
     ('Article_in_Unit', 'Stock'),
+    ('ArticleDiscount', 'Stock'),
     ('ArticleInLocation', 'StockLocation'),
     ('ArticleInStorageCube', 'StockCubes'),
+    ('Component', 'Stock'),
+    ('Customer', 'Sales'),
+    ('CustomerDiscount', 'Sales'),
+    ('Employee', 'Stock'),
+    ('Module', 'Stock'),
     ('Location', 'StockLocation'),
     ('Product', 'Stock'),
     ('PurchaseInvoice', 'Purchase'),
@@ -63,12 +68,14 @@ INSERT INTO @TableModule (tableName, moduleName) VALUES
     ('SalesPayment', 'Sales'),
     ('SalesQuote', 'Sales'),
     ('SalesQuoteLine', 'Sales'),
+    ('ShelfLife', 'Stock'),
     ('StorageCube', 'StockCubes'),
     ('StorageMethod', 'Stock'),
     ('Supplier', 'Purchase'),
     ('Supply', 'Stock'),
     ('SupplyDiscount', 'Stock'),
-    ('Unit', 'Stock');
+    ('Unit', 'Stock'),
+    ('VATType', 'Stock');
 
 SELECT
     'INSERT INTO "table" ("name", moduleName) VALUES ' +
