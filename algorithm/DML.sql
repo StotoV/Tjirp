@@ -746,18 +746,17 @@ INSERT INTO DeclarativeConstraintColumns (constraintName, columnName) VALUES ('P
 INSERT INTO DeclarativeConstraintColumns (constraintName, columnName) VALUES ('PK_UNIT', '"NAME"');
 INSERT INTO DeclarativeConstraintColumns (constraintName, columnName) VALUES ('PK_VATTYPE', '"CATEGORY"');
 
-
 --
 -- CK01
 --
 INSERT INTO DeclarativeConstraint (constraintName, tableName, constraintType, constraintLogic)
-    VALUES ('CK01_TEMPERATURE', 'Article', 'CHECK', 'maxTemperature >= minTemperature');
+    VALUES ('CK01_TEMPERATURE', '"Article"', 'CHECK', 'maxTemperature >= minTemperature');
 
 --
 -- TR01
 --
 INSERT INTO ProceduralConstraint (constraintName, tableName, constraintType, moduleName, constraintLogic, constraintMetaData)
-    VALUES ('Supply', 'TR01_Supply', 'TRIGGER', 'Stock',
+    VALUES ('"Supply"', 'TR01_Supply', 'TRIGGER', 'Stock',
             'IF @@ROWCOUNT = 0
                 RETURN
             SET NOCOUNT ON
@@ -798,7 +797,7 @@ INSERT INTO ProceduralConstraint (constraintName, tableName, constraintType, mod
 -- TR02
 --
 INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, moduleName, constraintLogic, constraintMetaData)
-    VALUES ('ArticleInStorageCube', 'TR02_ArticleInStorageCube', 'TRIGGER', 'StockCubes',
+    VALUES ('"ArticleInStorageCube"', 'TR02_ArticleInStorageCube', 'TRIGGER', 'StockCubes',
             'IF @@ROWCOUNT = 0
                 RETURN
             SET NOCOUNT ON
@@ -829,7 +828,7 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
 -- TR03
 --
 INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, moduleName, constraintLogic, constraintMetaData)
-    VALUES ('Product', 'TR03_Product', 'TRIGGER', 'Stock',
+    VALUES ('"Product"', 'TR03_Product', 'TRIGGER', 'Stock',
             'IF @@ROWCOUNT = 0
                 RETURN
             SET NOCOUNT ON
@@ -872,7 +871,7 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
 -- TR04
 --
 INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, moduleName, constraintLogic, constraintMetaData)
-    VALUES ('PurchasePayment', 'TR04_PURCHASE_PAYMENT_INVOICE_SUM_MATCH', 'TRIGGER', 'Purchase',
+    VALUES ('"PurchasePayment"', 'TR04_PURCHASE_PAYMENT_INVOICE_SUM_MATCH', 'TRIGGER', 'Purchase',
             'IF @@ROWCOUNT = 0
                 RETURN
             SET NOCOUNT ON
@@ -898,7 +897,7 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
 -- TR05
 --
 INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, moduleName, constraintLogic, constraintMetaData)
-    VALUES ('SalesPayment', 'TR05_SALES_PAYMENT_INVOICE_SUM_MATCH', 'TRIGGER', 'Sales',
+    VALUES ('"SalesPayment"', 'TR05_SALES_PAYMENT_INVOICE_SUM_MATCH', 'TRIGGER', 'Sales',
             'IF @@ROWCOUNT = 0
                 RETURN
             SET NOCOUNT ON
@@ -924,7 +923,7 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
 -- TR06
 --
 INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, moduleName, constraintLogic, constraintMetaData)
-    VALUES ('PurchaseOrderLine', 'TR06_PurchaseOrder_Amount', 'TRIGGER', 'Purchase',
+    VALUES ('"PurchaseOrderLine"', 'TR06_PurchaseOrder_Amount', 'TRIGGER', 'Purchase',
             'IF @@ROWCOUNT = 0
                 RETURN
             SET NOCOUNT ON
@@ -953,7 +952,7 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
 -- TR07
 --
 INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, moduleName, constraintLogic, constraintMetaData)
-    VALUES ('SalesOrderLine', 'TR07_SalesOrder_Amount', 'TRIGGER', 'Sales',
+    VALUES ('"SalesOrderLine"', 'TR07_SalesOrder_Amount', 'TRIGGER', 'Sales',
             'IF @@ROWCOUNT = 0
                 RETURN
             SET NOCOUNT ON
@@ -985,7 +984,7 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
 -- TR08
 --
 INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, moduleName, constraintLogic, constraintMetaData)
-    VALUES ('SalesOrderLine', 'TR08_SalesOrderLine', 'TRIGGER', 'Sales',
+    VALUES ('"SalesOrderLine"', 'TR08_SalesOrderLine', 'TRIGGER', 'Sales',
             'IF @@ROWCOUNT = 0
                 RETURN
             SET NOCOUNT ON
@@ -1108,7 +1107,7 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
 -- TR09
 --
 INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, moduleName, constraintLogic, constraintMetaData)
-    VALUES ('PurchaseOrderLine', 'TR09_PurchaseOrderLine', 'TRIGGER', 'Purchase',
+    VALUES ('"PurchaseOrderLine"', 'TR09_PurchaseOrderLine', 'TRIGGER', 'Purchase',
             'IF @@ROWCOUNT = 0
                 RETURN
             SET NOCOUNT ON
@@ -1176,7 +1175,7 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
 -- TR10
 --
 INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, moduleName, constraintLogic, constraintMetaData)
-    VALUES ('SalesOrderLine', 'TR10_SALES_UNIT_NAME_IN_UNIT_IN_ARTICLE', 'TRIGGER', 'Sales',
+    VALUES ('"SalesOrderLine"', 'TR10_SALES_UNIT_NAME_IN_UNIT_IN_ARTICLE', 'TRIGGER', 'Sales',
             'IF @@ROWCOUNT = 0
                 RETURN
             SET NOCOUNT ON
@@ -1202,7 +1201,7 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
 -- TR11
 --
 INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, moduleName, constraintLogic, constraintMetaData)
-    VALUES ('PurchaseOrderLine', 'TR11_PURCHASE_UNIT_NAME_IN_UNIT_IN_ARTICLE', 'TRIGGER', 'Purchase',
+    VALUES ('"PurchaseOrderLine"', 'TR11_PURCHASE_UNIT_NAME_IN_UNIT_IN_ARTICLE', 'TRIGGER', 'Purchase',
             'IF @@ROWCOUNT = 0
                 RETURN
             SET NOCOUNT ON
