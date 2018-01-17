@@ -73,7 +73,7 @@ GROUP BY
 --
 SELECT
     'INSERT INTO "table" ("name", moduleName) VALUES ' +
-    '(''' + TABLE_NAME + ''', ''' + (
+    '(''"' + TABLE_NAME + '"'', ''' + (
         SELECT
             CASE
                 WHEN moduleName IS NOT NULL AND moduleName <> ''
@@ -93,7 +93,7 @@ ORDER BY
 -- Columns
 --
 SELECT
-    'INSERT INTO "Column" ("name") VALUES (''' + COLUMN_NAME + ''');' as SQL
+    'INSERT INTO "Column" ("name") VALUES (''"' + COLUMN_NAME + '"'');' as SQL
 FROM
     INFORMATION_SCHEMA.COLUMNS
 GROUP BY
@@ -101,7 +101,7 @@ GROUP BY
 
 SELECT
     'INSERT INTO TableColumn (tableName, columnName, columnType, mandatory) VALUES ' +
-    '(''' + TABLE_NAME + ''', ''' + COLUMN_NAME + ''', ''' + DATA_TYPE +
+    '(''"' + TABLE_NAME + '"'', ''"' + COLUMN_NAME + '"'', ''' + DATA_TYPE +
 
     -- Datatypes which specify a length
     CASE
@@ -110,6 +110,9 @@ SELECT
             THEN '(' + CAST(NUMERIC_PRECISION AS VARCHAR) + ', ' + CAST(NUMERIC_SCALE AS VARCHAR) + ')'
         -- Datatypes without length
         WHEN CHARACTER_MAXIMUM_LENGTH IS NULL
+            THEN ''
+        -- Text datatype
+        WHEN DATA_TYPE = 'text'
             THEN ''
         -- Datatypes with length
         ELSE
@@ -134,8 +137,8 @@ ORDER BY
 SELECT
     'INSERT INTO DeclarativeConstraint (constraintName, tableName, referencedTableName, constraintType) VALUES (' +
     '''' + OBJECT_NAME (fk.object_id) + ''', ' +
-    '''' + OBJECT_NAME (fk.parent_object_id) + ''', ' +
-    '''' + OBJECT_NAME (fk_columns.referenced_object_id) + ''', ' +
+    '''"' + OBJECT_NAME (fk.parent_object_id) + '"'', ' +
+    '''"' + OBJECT_NAME (fk_columns.referenced_object_id) + '"'', ' +
     '''FOREIGN KEY'');'
 FROM
     sys.foreign_keys fk INNER JOIN sys.foreign_key_columns fk_columns
@@ -150,7 +153,7 @@ GROUP BY
 SELECT
     'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenced) VALUES (' +
     '''' + OBJECT_NAME (fk.object_id) + ''', ' +
-    '''' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + ''', ' +
+    '''"' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + '"'', ' +
     CAST(1 as VARCHAR) + '); '
 FROM
     sys.foreign_keys fk INNER JOIN sys.foreign_key_columns fk_columns
@@ -162,7 +165,7 @@ ORDER BY OBJECT_NAME(fk.object_id)
 SELECT
     'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenced) VALUES (' +
     '''' + OBJECT_NAME (fk.object_id) + ''', ' +
-    '''' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + ''', ' +
+    '''"' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + '"'', ' +
     CAST(0 as VARCHAR) + '); '
 FROM
     sys.foreign_keys fk INNER JOIN sys.foreign_key_columns fk_columns
@@ -177,7 +180,7 @@ ORDER BY OBJECT_NAME(fk.object_id)
 SELECT
     'INSERT INTO DeclarativeConstraint (constraintName, tableName, constraintType) VALUES (' +
     '''' + tc.CONSTRAINT_NAME + ''', ' +
-    '''' + tc.TABLE_NAME + ''', ' +
+    '''"' + tc.TABLE_NAME + '"'', ' +
     '''PRIMARY KEY'');'
 FROM
     INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
@@ -189,7 +192,7 @@ ORDER BY
 SELECT
     'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName) VALUES (' +
     '''' + tc.CONSTRAINT_NAME + ''', ' +
-    '''' + ccu.COLUMN_NAME + ''');'
+    '''"' + ccu.COLUMN_NAME + '"'');'
 FROM
     INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
     INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu
