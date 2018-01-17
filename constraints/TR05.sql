@@ -71,7 +71,7 @@ INSERT INTO SalesPayment(paymentNo, SalesInvoice_invoiceNo, SalesInvoice_referen
 	VALUES(6, 1, '1A', 20, convert(datetime,'2014-11-01T08:00:00.000'));
 GO
 
-CREATE TRIGGER TR04_SALES_PAYMENT_INVOICE_SUM_MATCH
+CREATE TRIGGER TR05_SALES_PAYMENT_INVOICE_SUM_MATCH
 	ON SalesPayment
 AFTER INSERT
 AS
@@ -116,10 +116,10 @@ BEGIN TRAN
         INSERT INTO SalesPayment 
 			-- Insert a payment amount of 22
 			VALUES(7, 2, '2A', 22, convert(datetime,'2014-11-01T08:00:00.000'));
-        PRINT 'Test BR01 - TR04 - 01 Succeeded'
+        PRINT 'Test BR01 - TR05 - 01 Succeeded'
     END TRY
     BEGIN CATCH
-        PRINT 'Test BR01 - TR04 - 01 Failed'
+        PRINT 'Test BR01 - TR05 - 01 Failed'
     END CATCH
 
     BEGIN TRY
@@ -142,10 +142,10 @@ BEGIN TRAN
 			VALUES(8, 3, '3A', 27, convert(datetime,'2014-11-01T08:00:00.000')),
 				--Insert a payment amount of 16
 				(9, 3, '3A', 16, convert(datetime,'2014-11-01T08:00:00.000'));
-        PRINT 'Test BR01 - TR04 - 02 Succeeded'
+        PRINT 'Test BR01 - TR05 - 02 Succeeded'
     END TRY
     BEGIN CATCH
-        PRINT 'Test BR01 - TR04 - 02 Failed'
+        PRINT 'Test BR01 - TR05 - 02 Failed'
     END CATCH
 ROLLBACK TRAN
 
