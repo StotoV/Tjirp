@@ -1,5 +1,5 @@
 Business rule 4 zal worden bewaakt door middel van een trigger op de INSERT en 
-UPDATE statements op de PurchaseOrder en SalesOrder tabel. Deze business rule is geïmplementeerd in TR06 en TR07.
+UPDATE statements op de PurchaseOrder en SalesOrder tabel. Deze business rule is geÃ¯mplementeerd in TR06 en TR07.
 TR06
 In tabel PurchaseOrderLine FOR EACH sum of amount WHERE articleNo is x AND orderNo is orderNo in PurchaseOrder AND in PurchaseOrder WHERE superOrder is y <= amount in PurchaseOrderLine WHERE orderNo = y
 TR07
@@ -23,11 +23,11 @@ CREATE TABLE Article(
 CREATE TABLE PurchaseOrder(
     orderNo INT,
     referenceNo INT,
-	superOderNo INT,
-	superOderReferenceNo INT
+	superOrderNo INT,
+	superOrderReferenceNo INT
 
     CONSTRAINT PK_PurchaseOrder PRIMARY KEY (orderNo,referenceNo),
-	CONSTRAINT FK_PurchaseOrder_SuperOrder FOREIGN KEY (superOderNo,superOderReferenceNo) REFERENCES PurchaseOrder(orderNo,referenceNo)
+	CONSTRAINT FK_PurchaseOrder_SuperOrder FOREIGN KEY (superOrderNo,superOrderReferenceNo) REFERENCES PurchaseOrder(orderNo,referenceNo)
 );
 
 
@@ -73,12 +73,12 @@ BEGIN
 
     BEGIN TRY
 	
-	Select @superOrderNo = Po.superOderNo, @superRef = Po.superOderReferenceNo, @amount = Pl.Amount ,@ArticleNo = Pl.Article_articleNo
+	Select @superOrderNo = Po.superOrderNo, @superRef = Po.superOrderReferenceNo, @amount = Pl.Amount ,@ArticleNo = Pl.Article_articleNo
 	From PurchaseOrder Po inner join inserted i on Po.orderNo = i.PurchaseOrder_orderNo AND Po.referenceNo = i.PurchaseOrder_referenceNo inner join PurchaseOrderLine Pl
-		 on Po.superOderNo = Pl.PurchaseOrder_orderNo AND Po.superOderReferenceNo = Pl.PurchaseOrder_referenceNo 
+		 on Po.superOrderNo = Pl.PurchaseOrder_orderNo AND Po.superOrderReferenceNo = Pl.PurchaseOrder_referenceNo 
 
 	if((Select SUM(Amount) From PurchaseOrderLine pl inner join PurchaseOrder po on pl.PurchaseOrder_orderNo = po.orderNo AND pl.PurchaseOrder_referenceNo = po.referenceNo
-		Where po.superOderNo = @superOrderNo AND po.superOderReferenceNo = @superRef AND pl.Article_articleNo = @ArticleNo) > @amount)
+		Where po.superOrderNo = @superOrderNo AND po.superOrderReferenceNo = @superRef AND pl.Article_articleNo = @ArticleNo) > @amount)
 
 	
         BEGIN
