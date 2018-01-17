@@ -154,7 +154,7 @@ SELECT
     'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenced) VALUES (' +
     '''' + OBJECT_NAME (fk.object_id) + ''', ' +
     '''"' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + '"'', ' +
-    CAST(1 as VARCHAR) + '); '
+    CAST(0 as VARCHAR) + '); '
 FROM
     sys.foreign_keys fk INNER JOIN sys.foreign_key_columns fk_columns
     ON fk.OBJECT_ID = fk_columns.constraint_object_id
@@ -166,7 +166,7 @@ SELECT
     'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenced) VALUES (' +
     '''' + OBJECT_NAME (fk.object_id) + ''', ' +
     '''"' + COL_NAME (fk_columns.parent_object_id, fk_columns.parent_column_id) + '"'', ' +
-    CAST(0 as VARCHAR) + '); '
+    CAST(1 as VARCHAR) + '); '
 FROM
     sys.foreign_keys fk INNER JOIN sys.foreign_key_columns fk_columns
     ON fk.OBJECT_ID = fk_columns.constraint_object_id
