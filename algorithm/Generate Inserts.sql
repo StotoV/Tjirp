@@ -7,22 +7,45 @@ USE test;
 -- Set the default module name
 DECLARE @defaultModule VARCHAR(MAX) = 'Module'
 
--- Create virtual table for all the modules
+--
+-- Module
+--
+DECLARE @Module TABLE (
+    moduleName VARCHAR(250) NOT NULL,
+    mandatory BIT DEFAULT 0
+);
+INSERT INTO @Module (moduleName, mandatory)
+    VALUES
+      (@defaultModule, 0),
+      ('Stock', 1),
+      ('Sales', 0),
+      ('Purchase', 0),
+      ('StockLocation', 0),
+      ('StockCubes', 0);
+
+SELECT
+    'INSERT INTO Module ("name", mandatory) VALUES (' +
+    '''' + moduleName + ''', ' +
+    CAST(mandatory as VARCHAR) + ');'
+FROM
+    @Module
+GROUP BY
+    moduleName, mandatory
+
+--
+-- Tables
+--
 DECLARE @TableModule TABLE (
     tableName VARCHAR(128) NOT NULL,
     moduleName VARCHAR(250) NOT NULL,
-    mandatory BIT DEFAULT 1
+    mandatory BIT DEFAULT 0,
+
+    CONSTRAINT FK_TableModule_Module FOREIGN KEY (moduleName) REFERENCES @Module (moduleName)
 );
 INSERT INTO @TableModule (tableName, moduleName) VALUES
-    ('Article', ''),
     ('Article_in_Unit', 'Stock'),
-    ('ArticleDiscount', ''),
     ('ArticleInLocation', 'StockLocation'),
     ('ArticleInStorageCube', 'StockCubes'),
-    ('Component', ''),
-    ('Customer', 'Sales'),
-    ('CustomerDiscount', ''),
-    ('Employee', ''),
     ('Location', 'StockLocation'),
     ('Product', 'Stock'),
     ('PurchaseInvoice', 'Purchase'),
@@ -40,37 +63,13 @@ INSERT INTO @TableModule (tableName, moduleName) VALUES
     ('SalesPayment', 'Sales'),
     ('SalesQuote', 'Sales'),
     ('SalesQuoteLine', 'Sales'),
-    ('ShelfLife', ''),
     ('StorageCube', 'StockCubes'),
     ('StorageMethod', 'Stock'),
     ('Supplier', 'Purchase'),
     ('Supply', 'Stock'),
     ('SupplyDiscount', 'Stock'),
-    ('Unit', 'Stock'),
-    ('VatType', '');
+    ('Unit', 'Stock');
 
---
--- Module
---
-SELECT
-    'INSERT INTO Module ("name", mandatory) VALUES (' +
-    '''' +
-    CASE
-        WHEN moduleName IS NULL OR moduleName = '' THEN
-            @defaultModule
-        ELSE
-            moduleName
-    END
-    + ''', ' +
-    CAST(mandatory as VARCHAR) + ');'
-FROM
-    @TableModule
-GROUP BY
-    moduleName, mandatory
-
---
--- Tables
---
 SELECT
     'INSERT INTO "table" ("name", moduleName) VALUES ' +
     '(''"' + TABLE_NAME + '"'', ''' + (
