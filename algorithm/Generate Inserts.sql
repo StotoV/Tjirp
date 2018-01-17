@@ -10,7 +10,8 @@ DECLARE @defaultModule VARCHAR(MAX) = 'Module'
 -- Create virtual table for all the modules
 DECLARE @TableModule TABLE (
     tableName VARCHAR(128) NOT NULL,
-    moduleName VARCHAR(250) NOT NULL
+    moduleName VARCHAR(250) NOT NULL,
+    mandatory BIT DEFAULT 1
 );
 INSERT INTO @TableModule (tableName, moduleName) VALUES
     ('Article', ''),
@@ -49,10 +50,29 @@ INSERT INTO @TableModule (tableName, moduleName) VALUES
     ('VatType', '');
 
 --
+-- Module
+--
+SELECT
+    'INSERT INTO Module ("name", mandatory) VALUES (' +
+    '''' +
+    CASE
+        WHEN moduleName IS NULL OR moduleName = '' THEN
+            @defaultModule
+        ELSE
+            moduleName
+    END
+    + ''', ' +
+    CAST(mandatory as VARCHAR) + ');'
+FROM
+    @TableModule
+GROUP BY
+    moduleName, mandatory
+
+--
 -- Tables
 --
 SELECT
-    'INSERT INTO "table" (name, moduleName) VALUES ' +
+    'INSERT INTO "table" ("name", moduleName) VALUES ' +
     '(''' + TABLE_NAME + ''', ''' + (
         SELECT
             CASE
@@ -73,7 +93,13 @@ ORDER BY
 -- Columns
 --
 SELECT
-    'INSERT INTO "Column" (name) VALUES (''' + COLUMN_NAME + '''); ' +
+    'INSERT INTO "Column" ("name") VALUES (''' + COLUMN_NAME + ''');' as SQL
+FROM
+    INFORMATION_SCHEMA.COLUMNS
+GROUP BY
+    COLUMN_NAME
+
+SELECT
     'INSERT INTO TableColumn (tableName, columnName, columnType, mandatory) VALUES ' +
     '(''' + TABLE_NAME + ''', ''' + COLUMN_NAME + ''', ''' + DATA_TYPE +
 
@@ -116,6 +142,10 @@ FROM
     ON fk.OBJECT_ID = fk_columns.constraint_object_id
     INNER JOIN sys.tables tables
     ON fk_columns.referenced_object_id = tables.object_id
+GROUP BY
+    fk.object_id,
+    fk.parent_object_id,
+    fk_columns.referenced_object_id
 
 SELECT
     'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName, isReferenced) VALUES (' +
@@ -148,7 +178,7 @@ SELECT
     'INSERT INTO DeclarativeConstraint (constraintName, tableName, constraintType) VALUES (' +
     '''' + tc.CONSTRAINT_NAME + ''', ' +
     '''' + tc.TABLE_NAME + ''', ' +
-    '''FOREIGN KEY '');'
+    '''PRIMARY KEY'');'
 FROM
     INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
 WHERE
@@ -157,7 +187,7 @@ ORDER BY
     tc.TABLE_NAME
 
 SELECT
-    'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName) VALUE (' +
+    'INSERT INTO DeclarativeConstraintColumns (constraintName, columnName) VALUES (' +
     '''' + tc.CONSTRAINT_NAME + ''', ' +
     '''' + ccu.COLUMN_NAME + ''');'
 FROM
