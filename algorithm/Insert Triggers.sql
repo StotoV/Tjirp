@@ -188,12 +188,12 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
             Declare @superOrderNo INT
             Declare @superRef INT
             Declare @ArticleNo INT
-            Select @superOrderNo = Po.superOderNo, @superRef = Po.superOderReferenceNo, @amount = Pl.Amount ,@ArticleNo = Pl.Article_articleNo
+            Select @superOrderNo = Po.superOrderNo, @superRef = Po.superOrderReferenceNo, @amount = Pl.Amount ,@ArticleNo = Pl.Article_articleNo
             From PurchaseOrder Po inner join inserted i on Po.orderNo = i.PurchaseOrder_orderNo AND Po.referenceNo = i.PurchaseOrder_referenceNo inner join PurchaseOrderLine Pl
-                 on Po.superOderNo = Pl.PurchaseOrder_orderNo AND Po.superOderReferenceNo = Pl.PurchaseOrder_referenceNo
+                 on Po.superOrderNo = Pl.PurchaseOrder_orderNo AND Po.superOrderReferenceNo = Pl.PurchaseOrder_referenceNo
 
             if((Select SUM(Amount) From PurchaseOrderLine pl inner join PurchaseOrder po on pl.PurchaseOrder_orderNo = po.orderNo AND pl.PurchaseOrder_referenceNo = po.referenceNo
-                Where po.superOderNo = @superOrderNo AND po.superOderReferenceNo = @superRef AND pl.Article_articleNo = @ArticleNo) > @amount)
+                Where po.superOrderNo = @superOrderNo AND po.superOrderReferenceNo = @superRef AND pl.Article_articleNo = @ArticleNo) > @amount)
 
 
                 BEGIN
@@ -220,12 +220,12 @@ INSERT INTO ProceduralConstraint (tableName, constraintName, constraintType, mod
             Declare @superOrderNo INT
             Declare @superRef INT
             Declare @ArticleNo INT
-            Select @superOrderNo = So.superOderNo, @superRef = So.superOderReferenceNo, @amount = Sl.Amount, @ArticleNo = Sl.Article_articleNo
+            Select @superOrderNo = So.superOrderNo, @superRef = So.superOrderReferenceNo, @amount = Sl.Amount, @ArticleNo = Sl.Article_articleNo
             From SalesOrder So inner join inserted i on So.orderNo = i.SalesOrder_orderNo AND So.referenceNo = i.SalesOrder_referenceNo inner join SalesOrderLine Sl
-                 on So.superOderNo = Sl.SalesOrder_orderNo AND So.superOderReferenceNo = Sl.SalesOrder_referenceNo
+                 on So.superOrderNo = Sl.SalesOrder_orderNo AND So.superOrderReferenceNo = Sl.SalesOrder_referenceNo
 
             if((Select SUM(Amount) From SalesOrderLine Sl inner join SalesOrder So on Sl.SalesOrder_orderNo = So.orderNo AND Sl.SalesOrder_referenceNo = So.referenceNo
-                Where So.superOderNo = @superOrderNo AND So.superOderReferenceNo = @superRef AND Sl.Article_articleNo = @ArticleNo) > @amount)
+                Where So.superOrderNo = @superOrderNo AND So.superOrderReferenceNo = @superRef AND Sl.Article_articleNo = @ArticleNo) > @amount)
 
 
                 BEGIN
