@@ -1,5 +1,5 @@
 Business rule 4 zal worden bewaakt door middel van een trigger op de INSERT en 
-UPDATE statements op de SalesOrder en SalesOrder tabel. Deze business rule is geïmSlementeerd in TR06 en TR07.
+UPDATE statements op de SalesOrder en SalesOrder tabel. Deze business rule is geÃ¯mSlementeerd in TR06 en TR07.
 TR06
 In tabel SalesOrderLine FOR EACH sum of amount WHERE articleNo is x AND orderNo is orderNo in SalesOrder AND in SalesOrder WHERE superOrder is y <= amount in SalesOrderLine WHERE orderNo = y
 TR07
@@ -54,9 +54,9 @@ INSERT INTO SalesOrderLine VALUES (3, 1, 10, 1, 30), (1, 5, 2, 2, 1), (3, 1,1, 3
 -- superOrder is y <= amount in SalesOrderLine WHERE orderNo = y.
 --
 
-DROP TRIGGER TR06_SalesOrder_Amount
+DROP TRIGGER TR07_SalesOrder_Amount
 
-CREATE TRIGGER TR06_SalesOrder_Amount
+CREATE TRIGGER TR07_SalesOrder_Amount
 ON SalesOrderLine
 AFTER INSERT, UPDATE
 AS

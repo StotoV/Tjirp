@@ -72,9 +72,9 @@ INSERT INTO PurchaseOrderLine VALUES (1, 'ref1', 1, 1, 1, 'addr', 1, 'addr', 3),
 -- articleNo is y with the amount of de SalesOrderLine WHERE orderNo in
 -- x AND articleNo is y
 --
-DROP TRIGGER IF EXISTS TR08_SalesOrderLine;GO
+DROP TRIGGER IF EXISTS TR09_PurchaseOrderLine;GO
 CREATE TRIGGER
-    TR08_SalesOrderLine
+    TR09_PurchaseOrderLine
 ON PurchaseOrderLine
 AFTER INSERT, UPDATE
 AS

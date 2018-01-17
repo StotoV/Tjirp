@@ -76,6 +76,8 @@ CREATE TABLE DeclarativeConstraintColumns (
 );
 GO
 
+--SELECT * FROM DeclarativeConstraintColumns WHERE constraintName = 'FK_ARTICLE__ARTICLE_I_ARTICLE'
+
 CREATE TYPE PreferenceTable AS TABLE (
 	moduleName VARCHAR(255) PRIMARY KEY
 ); 
