@@ -69,7 +69,7 @@ INSERT INTO Article_in_Unit
 		(5, 'unit1')
 GO
 
-CREATE TRIGGER TR10_PURCHASE_UNIT_NAME_IN_UNIT_IN_ARTICLE
+CREATE TRIGGER TR11_PURCHASE_UNIT_NAME_IN_UNIT_IN_ARTICLE
 	ON PurchaseOrderLine
 AFTER INSERT, UPDATE
 AS
@@ -103,10 +103,10 @@ BEGIN TRAN
 		INSERT INTO PurchaseOrderLine
 			VALUES(1, '1A', 6, 1, 'unit1'),
 				(1, '1A', 7, 2, 'unit1')
-        PRINT 'Test BR07 - TR10 - 01 Succeeded'
+        PRINT 'Test BR07 - TR11 - 01 Succeeded'
     END TRY
     BEGIN CATCH
-        PRINT 'Test BR07 - TR10 - 01 Failed'
+        PRINT 'Test BR07 - TR11 - 01 Failed'
     END CATCH
 
     BEGIN TRY
@@ -119,10 +119,10 @@ BEGIN TRAN
 				-- Insert order line with article 4 and 5 that belong to unit2
 				(1, '1A', 9, 4, 'unit2'),
 				(1, '1A', 10, 5, 'unit2')
-        PRINT 'Test BR07 - TR10 - 02 Succeeded'
+        PRINT 'Test BR07 - TR11 - 02 Succeeded'
     END TRY
     BEGIN CATCH
-        PRINT 'Test BR07 - TR10 - 02 Failed'
+        PRINT 'Test BR07 - TR11 - 02 Failed'
     END CATCH
 ROLLBACK TRAN
 
